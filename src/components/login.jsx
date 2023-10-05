@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { /*useState*/ } from 'react';
 import './login.css';
 
 function generateRandomString(length) {
@@ -30,7 +30,7 @@ async function generateCodeChallenge(codeVerifier) {
 
 const handleLogin = () => {
   const clientId = '98fc1b94f1e445cebcfe067a505598ba';
-  const redirectUri = 'http://localhost:8080/callback';
+  const redirectUri = 'http://localhost:3000/callback';
 
   let codeVerifier = generateRandomString(128);
 
@@ -54,11 +54,6 @@ const handleLogin = () => {
   });
 
 };
-
-const urlParams = new URLSearchParams(window.location.search);
-let code = urlParams.get('code');
-
-console.log("key from login page \n" + code);
 
 
 function LoginPage() {
