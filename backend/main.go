@@ -2,29 +2,62 @@ package main
 
 import (
 	"fmt"
-	// "math/rand"
-	// "time"
-	// "crypto/sha256"
-	// "encoding/base64"
-	// "bytes"
+	"io"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"github.com/rs/cors"
-	// "net/url"
-	// "github.com/gorilla/mux"
 )
 
-// This handler will recieve the url from Spotify's API, indicating that the user has been successfully authenticated.
-// The url will contain parameters which are parsed, and is how the Autherization Code is recieved.
-// The server then sends a message to the frontend, notifying the status of the authentication.
+var authKey string
+
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
-	authKey := r.URL.Query().Get("code")	// retrieve the authentication key for the use found in the parameters of the URL
+	authKey = r.URL.Query().Get("code")	// retrieve the authentication key for the use found in the parameters of the URL
 	http.Redirect(w, r, "http://localhost:3000/home", http.StatusFound)
 	fmt.Printf("Authentication successful\nAuth Key: %s", authKey)
 }
 
 type IncomingData struct { 
 	CodeVerifier string `json:"codeVerifier"`
+}
+
+func requestAccessToken(someData string) {
+	body := url.Values{}
+	body.Set("grant_type", "authorization_code")
+	body.Set("code", authKey)
+	body.Set("redirect_uri", "http://localhost:8080/callback")
+	body.Set("client_id", "98fc1b94f1e445cebcfe067a505598ba")
+	body.Set("code_verifier", someData)
+	spotifyUrl := "https://accounts.spotify.com/api/token"
+
+	
+	req, err := http.PostForm(spotifyUrl, body)
+	if err != nil {
+		fmt.Println("Error sending a request: ", err)
+	}
+	defer req.Body.Close()
+
+	if req.StatusCode != http.StatusOK {
+		fmt.Println("HTTP status code:", req.StatusCode)
+		return
+	}
+
+	var data map[string]interface{}
+	responseBody, err := io.ReadAll(req.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return
+	}
+	if err := json.Unmarshal(responseBody, &data); err != nil {
+		fmt.Println("Error parsing JSON response:", err)
+		return
+	}
+	access_token, ok := data["access_token"].(string)
+	if !ok {
+		fmt.Println("Invalid access token format in response")
+		return
+	}
+	fmt.Println("Access Token:", access_token)
 }
 
 func incomingHandler(w http.ResponseWriter, r *http.Request) {
@@ -37,6 +70,7 @@ func incomingHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fmt.Printf("Received codeVerifier: %s\n", data.CodeVerifier)
+		requestAccessToken(data.CodeVerifier)
 	} else {
 		http.Error(w, "Invalid request method :/", http.StatusMethodNotAllowed)
 	}
@@ -54,6 +88,6 @@ func main() {
 	http.HandleFunc("/incoming", func(w http.ResponseWriter, r *http.Request) {
         corsHandler.Handler(http.HandlerFunc(incomingHandler)).ServeHTTP(w, r)
     })
-	
+
 	http.ListenAndServe(":8080", nil)
 }
