@@ -1,10 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
+// import {Container, Navbar, Nav, NavDropdown} from 'react-bootstrap';
 
-const urlParams = new URLSearchParams(window.location.search);
-let code = urlParams.get('code');
-
-console.log("key from home page \n" + code);
 
 function HomePage() {
   return (
