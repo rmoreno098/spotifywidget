@@ -1,4 +1,4 @@
-import React, { /*useState*/ } from 'react';
+import React from 'react';
 import './login.css';
 
 function generateRandomString(length) {
@@ -10,7 +10,6 @@ function generateRandomString(length) {
   }
   return text;
 }
-
 
 async function generateCodeChallenge(codeVerifier) {
   function base64encode(string) {
@@ -27,10 +26,9 @@ async function generateCodeChallenge(codeVerifier) {
   return base64encode(digest);
 }
 
-
 const handleLogin = () => {
   const clientId = '98fc1b94f1e445cebcfe067a505598ba';
-  const redirectUri = 'http://localhost:3000/callback';
+  const redirectUri = 'http://localhost:8080/callback';
 
   let codeVerifier = generateRandomString(128);
 
@@ -47,21 +45,45 @@ const handleLogin = () => {
       redirect_uri: redirectUri,
       state: state,
       code_challenge_method: 'S256',
-      code_challenge: codeChallenge
+      code_challenge: codeChallenge,
     });
 
-    window.location = 'https://accounts.spotify.com/authorize?' + args;
+
+    // Data to send to the server
+    const dataToSend = {
+      codeVerifier: codeVerifier,
+    };
+
+    // Send a POST request to your Go server
+    fetch('http://localhost:8080/incoming', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dataToSend),
+    })
+      .then(response => {
+        if (response.ok) {
+          console.log('Data sent successfully');
+        } else {
+          console.error('Failed to send data to the server');
+        }
+      })
+      .catch(error => {
+        console.error('Error sending data:', error);
+      });
+      window.location = 'https://accounts.spotify.com/authorize?' + args;
   });
-
 };
-
 
 function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-container">
         <h1>Spotify Login</h1>
-        <button className="login-button" onClick={handleLogin}>Login</button>
+        <button className="login-button" onClick={handleLogin}>
+          Login
+        </button>
       </div>
     </div>
   );

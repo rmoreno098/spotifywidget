@@ -1,5 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
+// import {Container, Navbar, Nav, NavDropdown} from 'react-bootstrap';
+
 
 function HomePage() {
   return (

@@ -1,13 +1,15 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	// "math/rand"
 	// "time"
 	// "crypto/sha256"
 	// "encoding/base64"
 	// "bytes"
+	"encoding/json"
 	"net/http"
+	"github.com/rs/cors"
 	// "net/url"
 	// "github.com/gorilla/mux"
 )
@@ -16,31 +18,42 @@ import (
 // The url will contain parameters which are parsed, and is how the Autherization Code is recieved.
 // The server then sends a message to the frontend, notifying the status of the authentication.
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
-	// frontEndURL := "http://localhost:3000/home"
 	authKey := r.URL.Query().Get("code")	// retrieve the authentication key for the use found in the parameters of the URL
+	http.Redirect(w, r, "http://localhost:3000/home", http.StatusFound)
+	fmt.Printf("Authentication successful\nAuth Key: %s", authKey)
+}
 
-	// req, err := http.NewRequest("POST", frontEndURL, bytes.NewBuffer([]byte("We are authenticated!\nHere is the key: " + authKey)))
-	// if err != nil {
-	// 	println("unable to create new request :(")
-	// }
-	// req.Header.Set("Content-Type", "application/json")
+type IncomingData struct { 
+	CodeVerifier string `json:"codeVerifier"`
+}
 
-	// client := &http.Client{}
+func incomingHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var data IncomingData
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			http.Error(w, "Failed to parse JSON data :(", http.StatusBadRequest)
+			return
+		}
 
-	// resp, err := client.Do(req)
-	// if err != nil {
-	// 	println("unable to send http request :(")
-	// }
-	// defer resp.Body.Close()
-
-	http.Redirect(w, r, "/home", http.StatusFound)
-	println(w, "Authentication successful\nAuth Key: " + authKey)
+		fmt.Printf("Received codeVerifier: %s\n", data.CodeVerifier)
+	} else {
+		http.Error(w, "Invalid request method :/", http.StatusMethodNotAllowed)
+	}
 }
 
 
 func main() {
+	corsHandler := cors.Default()
 
-	println("Server is now runnning on port 3000!")
-	http.HandleFunc("/callback", callbackHandler)
-	http.ListenAndServe(":8000", nil)
+	println("Server is now runnning on port 8080!")
+	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
+        corsHandler.Handler(http.HandlerFunc(callbackHandler)).ServeHTTP(w, r)
+    })
+
+	http.HandleFunc("/incoming", func(w http.ResponseWriter, r *http.Request) {
+        corsHandler.Handler(http.HandlerFunc(incomingHandler)).ServeHTTP(w, r)
+    })
+	
+	http.ListenAndServe(":8080", nil)
 }
