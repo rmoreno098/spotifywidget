@@ -1,7 +1,7 @@
-import React from 'react';
+// import React from 'react';
 import './login.css';
 
-function generateRandomString(length) {
+function generateRandomString(length: number): string {
   let text = '';
   let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -11,9 +11,9 @@ function generateRandomString(length) {
   return text;
 }
 
-async function generateCodeChallenge(codeVerifier) {
-  function base64encode(string) {
-    return btoa(String.fromCharCode.apply(null, new Uint8Array(string)))
+async function generateCodeChallenge(codeVerifier: string): Promise<string> {
+  function base64encode(string: string): string {
+    return btoa(string)
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '');
@@ -23,18 +23,18 @@ async function generateCodeChallenge(codeVerifier) {
   const data = encoder.encode(codeVerifier);
   const digest = await window.crypto.subtle.digest('SHA-256', data);
 
-  return base64encode(digest);
+return base64encode(String.fromCharCode.apply(null, Array.from(new Uint8Array(digest))));
 }
 
 const handleLogin = () => {
-  const clientId = '98fc1b94f1e445cebcfe067a505598ba';
-  const redirectUri = 'http://localhost:8080/callback';
+  const clientId: string = '98fc1b94f1e445cebcfe067a505598ba';
+  const redirectUri: string = 'http://localhost:8080/callback';
 
-  let codeVerifier = generateRandomString(128);
+  let codeVerifier: string = generateRandomString(128);
 
-  generateCodeChallenge(codeVerifier).then(codeChallenge => {
-    let state = generateRandomString(16);
-    let scope = 'user-read-private user-read-email';
+  generateCodeChallenge(codeVerifier).then((codeChallenge: string) => {
+    let state: string = generateRandomString(16);
+    let scope: string = 'user-read-private user-read-email';
 
     localStorage.setItem('code_verifier', codeVerifier);
 
@@ -47,7 +47,6 @@ const handleLogin = () => {
       code_challenge_method: 'S256',
       code_challenge: codeChallenge,
     });
-
 
     // Data to send to the server
     const dataToSend = {
@@ -72,7 +71,8 @@ const handleLogin = () => {
       .catch(error => {
         console.error('Error sending data:', error);
       });
-      window.location = 'https://accounts.spotify.com/authorize?' + args;
+
+    window.location.href = 'https://accounts.spotify.com/authorize?' + args;
   });
 };
 
