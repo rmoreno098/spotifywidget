@@ -27,6 +27,47 @@ interface Image {
   width: number;
 }
 
+interface Playlist {
+  href: string;
+  items: Item[];
+  limit: number;
+  next: string;
+  offset: number;
+  previous: string;
+  total: number;
+}
+
+interface Item {
+  collaborative: boolean;
+  description: string;
+  external_urls: { spotify: string };
+  href: string;
+  id: string;
+  images: Image[];
+  name: string;
+  owner: Owner;
+  primary_color: string;
+  public: boolean;
+  snapshot_id: string;
+  tracks: Tracks;
+  type: string;
+  uri: string;
+}
+
+interface Tracks {
+  href: string;
+  total: number;
+}
+
+interface Owner {
+  display_name: string;
+  external_urls: { spotify: string };
+  href: string;
+  id: string;
+  type: string;
+  uri: string;
+}
+
 const clientId = "98fc1b94f1e445cebcfe067a505598ba";
 
 function DashboardPage() {
@@ -34,6 +75,7 @@ function DashboardPage() {
   const code = params.get("code");
 
   const [profile, setProfile] = useState<UserProfile>();
+  const [playlists, setPlaylists] = useState<Playlist>();
   const [connected, setConnected] = useState(false);
 
   async function fetchProfile(code: string): Promise<any> {
@@ -44,6 +86,14 @@ function DashboardPage() {
     return await result.json();
   }
 
+  async function fetchPlaylists(code: string): Promise<any> {
+    const result = await fetch("https://api.spotify.com/v1/me/playlists", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${code}` },
+      });
+      return await result.json();
+  }
+
   const spotifyLogin = async () => {
     console.log("button clicked !");
     if (!code) {
@@ -51,15 +101,32 @@ function DashboardPage() {
     } else {
         const accessToken = await getAccessToken(clientId, code);
         const usr = await fetchProfile(accessToken);
-        if(usr.error) {
+        const usr_playlists = await fetchPlaylists(accessToken);
+        if(usr.error || usr_playlists.error) {
           console.error(usr.error.message); // Invalid access token
           return;
         } else {
           setProfile(usr);
+          setPlaylists(usr_playlists);
           setConnected(true);
       }
     }
   };
+
+  function showProfile() {
+    return (
+      <div>
+
+        <div className="flex">
+          <h2>Hello {profile?.display_name}</h2>
+          <img src={profile?.images[0].url} alt="profile" />
+          <h2>Followers: {profile?.followers.total}</h2>
+          <h2>Playlists: {playlists?.total}</h2>
+        </div>
+
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -67,7 +134,7 @@ function DashboardPage() {
       <button onClick={spotifyLogin} disabled={connected}>
         Connect to Spotify
       </button>
-      {connected ? <h2>Hello {profile?.display_name}</h2> : <></>}
+      {connected ? showProfile() : <></>}
       <Link to="/">Back to Login</Link>
     </div>
   );
