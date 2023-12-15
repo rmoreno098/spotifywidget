@@ -1,9 +1,8 @@
 // import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import LoginPage from './components/login';
-import HomePage from './components/home';
+import DashboardPage from './components/dashboard';
 import 'bootstrap/dist/css/bootstrap.min.css';
-// import {Container, Navbar, Nav, NavDropdown} from 'react-bootstrap';
 
 // const fetchData = async () => {
 //   try {
@@ -29,8 +28,8 @@ function App() {
             element={ <LoginPage />} 
           />
           <Route 
-            path="/home" 
-            element={ <HomePage />} 
+            path="/dashboard" 
+            element={ <DashboardPage />} 
           />
         </Routes>
     </Router>
