@@ -1,76 +1,11 @@
-import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserProfile, Playlist } from "./types";
 import { redirectToAuthCodeFlow, getAccessToken } from "./auth";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { useEffect, useState } from "react";
-
-interface UserProfile {
-  country: string;
-  display_name: string;
-  email: string;
-  explicit_content: {
-    filter_enabled: boolean;
-    filter_locked: boolean;
-  };
-  external_urls: { spotify: string };
-  followers: { href: string; total: number };
-  href: string;
-  id: string;
-  images: Image[];
-  product: string;
-  type: string;
-  uri: string;
-}
-
-interface Image {
-  url: string;
-  height: number;
-  width: number;
-}
-
-interface Playlist {
-  href: string;
-  items: Item[];
-  limit: number;
-  next: string;
-  offset: number;
-  previous: string;
-  total: number;
-}
-
-interface Item {
-  collaborative: boolean;
-  description: string;
-  external_urls: { spotify: string };
-  href: string;
-  id: string;
-  images: Image[];
-  name: string;
-  owner: Owner;
-  primary_color: string;
-  public: boolean;
-  snapshot_id: string;
-  tracks: Tracks;
-  type: string;
-  uri: string;
-}
-
-interface Tracks {
-  href: string;
-  total: number;
-}
-
-interface Owner {
-  display_name: string;
-  external_urls: { spotify: string };
-  href: string;
-  id: string;
-  type: string;
-  uri: string;
-}
-
-const clientId = "98fc1b94f1e445cebcfe067a505598ba";
 
 function DashboardPage() {
+  const clientId = "98fc1b94f1e445cebcfe067a505598ba";
+  const navigate = useNavigate();
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
 
@@ -91,52 +26,112 @@ function DashboardPage() {
       method: "GET",
       headers: { Authorization: `Bearer ${code}` },
       });
-      return await result.json();
+    return await result.json();
   }
 
-  const spotifyLogin = async () => {
-    console.log("button clicked !");
+  const playlistClick = async (event: React.MouseEvent<HTMLButtonElement>, playlistId: string) => {
+    event.preventDefault();
+    console.log("playlist clicked", playlistId);
+    navigate(`/playlist/${playlistId}`);
+  }
+
+  const spotifyConnect = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
     if (!code) {
       redirectToAuthCodeFlow(clientId);
-    } else {
-        const accessToken = await getAccessToken(clientId, code);
-        const usr = await fetchProfile(accessToken);
-        const usr_playlists = await fetchPlaylists(accessToken);
-        if(usr.error || usr_playlists.error) {
-          console.error(usr.error.message); // Invalid access token
-          return;
-        } else {
-          setProfile(usr);
-          setPlaylists(usr_playlists);
-          setConnected(true);
+    } 
+    else {
+      const accessToken = await getAccessToken(clientId, code);
+      const usr = await fetchProfile(accessToken);
+      const usr_playlists = await fetchPlaylists(accessToken);
+
+      if(usr.error || usr_playlists.error) {
+        console.error(usr.error.message); // Invalid access token or something similar
+        redirectToAuthCodeFlow(clientId);
+      } else {
+        setProfile(usr);
+        setPlaylists(usr_playlists);
+        setConnected(true);
       }
     }
   };
 
-  function showProfile() {
-    return (
-      <div>
-
-        <div className="flex">
-          <h2>Hello {profile?.display_name}</h2>
-          <img src={profile?.images[0].url} alt="profile" />
-          <h2>Followers: {profile?.followers.total}</h2>
-          <h2>Playlists: {playlists?.total}</h2>
-        </div>
-
-      </div>
-    );
-  }
+  console.log(playlists)
+  // {playlists?.items[0].images[0].url}
 
   return (
-    <div>
-      <h1>Welcome to the Home Page</h1>
-      <button onClick={spotifyLogin} disabled={connected}>
-        Connect to Spotify
-      </button>
-      {connected ? showProfile() : <></>}
-      <Link to="/">Back to Login</Link>
-    </div>
+    <form className="flex flex-col relative shrink-0 box-border justify-start items-start w-full bg-gray-900 p-9 max-md:mb-9 h-screen">
+      <header className="flex flex-col justify-start items-start w-full max-md:gap-[px]">
+        <div className="flex flex-col max-w-full self-stretch w-auto max-md:w-auto max-md:self-stretch">
+          <header className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
+            <div className="flex flex-col items-stretch w-6/12 max-md:w-full max-md:ml-0">
+              {connected ? (
+                <div className="flex flex-col max-w-full justify-center self-stretch w-full items-start h-full mx-auto max-md:gap-9 max-md:h-auto max-md:grow-0 max-md:mb-9">
+                  <div className="flex flex-col justify-center items-start w-auto self-stretch">
+                    <h1 className="max-w-[400px] text-white text-4xl tracking-normal text-left mt-2">
+                    Hello {profile?.display_name} 👋
+                    </h1>                    
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col max-w-full justify-center self-stretch w-full items-start h-full mx-auto max-md:gap-9 max-md:h-auto max-md:grow-0 max-md:mb-9">
+                  <div className="flex flex-col justify-center items-start w-auto self-stretch">
+                    <h1 className="max-w-[350px] text-white text-4xl tracking-normal text-left mt-2">
+                      Connect to Spotify
+                    </h1>
+
+                    <button
+                      className="relative shrink-0 box-border appearance-none text-green-500 bg-green-200 rounded text-center cursor-pointer w-auto self-center mr-auto mt-5 px-6 py-4"
+                      onClick={(event)=>spotifyConnect(event)} disabled={connected}
+                    >
+                      Connect
+                    </button>
+                  </div>
+                </div>
+              )
+             }
+            </div>
+
+            <div className="flex flex-col items-stretch w-6/12 ml-5 max-md:w-full max-md:ml-0">
+              <header className="flex flex-row relative shrink-0 box-border w-full justify-between">
+                <div className="flex flex-col relative shrink-0 box-border w-full">
+                  <header className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
+                    <div className="flex flex-col items-stretch w-full max-md:w-full max-md:ml-0">
+                        {connected ? ( <></> ) : (
+                          <span className="text-white text-4xl tracking-normal text-left mt-2">
+                            Connect to see your playlists 🎶
+                          </span>
+                        )}
+                    </div>
+                  </header>
+                </div>
+              </header>
+            </div>
+          </header>
+        </div>
+      </header>
+
+      <section className="flex flex-col max-w-full self-stretch w-auto mt-6">
+        <header className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
+            {playlists?.items.map((playlist) => (
+              <div className="flex flex-col items-stretch w-3/12 max-md:w-full max-md:ml-0">
+                <button onClick={(event)=>playlistClick(event, playlist.id)}>
+                  <img
+                    loading="lazy"
+                    key={playlist.id}
+                    src={playlist.images[0]?.url || "default-playlist-image.jpg"}
+                    className="aspect-square object-cover object-bottom w-full shrink-0 box-border min-h-[20px] min-w-[20px] overflow-hidden h-full m-auto rounded-lg max-md:my-6"
+                    alt={playlist.name}
+                  />
+                </button>
+                <span className="text-white text-4xl tracking-normal text-center mt-2">
+                  {playlist.name}
+                </span>
+              </div>
+            ))}
+        </header>
+      </section>
+    </form>
   );
 }
 
