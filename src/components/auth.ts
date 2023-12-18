@@ -2,12 +2,27 @@ export async function redirectToAuthCodeFlow(clientId: string) {
     const verifier = generateCodeVerifier(128);
     const challenge = await generateCodeChallenge(verifier);
 
-    localStorage.setItem("verifier", verifier);
+    // localStorage.setItem("verifier", verifier);
+    
+    // send verifier to server
+    const result = await fetch('http://localhost:8080/verifier', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ verifier: verifier }),
+    });
 
+    // if server failed to store verifier, abort
+    if (result.status !== 200) {
+        console.error("Failed to store verifier");
+        return;
+    }
+
+    // redirect to spotify auth page with challenge
+    // will redirect to callback url (server)
     const params = new URLSearchParams();
     params.append("client_id", clientId);
     params.append("response_type", "code");
-    params.append("redirect_uri", "http://localhost:5173/dashboard");
+    params.append("redirect_uri", "http://localhost:8080/callback");
     params.append("scope", "user-read-private user-read-email");
     params.append("code_challenge_method", "S256");
     params.append("code_challenge", challenge);
@@ -22,7 +37,7 @@ export async function getAccessToken(clientId: string, code: string) {
     params.append("client_id", clientId);
     params.append("grant_type", "authorization_code");
     params.append("code", code);
-    params.append("redirect_uri", "http://localhost:5173/dashboard");
+    params.append("redirect_uri", "http://localhost:8080/callback");
     params.append("code_verifier", verifier!);
 
     const result = await fetch("https://accounts.spotify.com/api/token", {
@@ -52,4 +67,19 @@ async function generateCodeChallenge(codeVerifier: string) {
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');
+}
+
+export async function handleServerCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+    const state = urlParams.get("state");
+    const savedState = localStorage.getItem("state");
+
+    if (state !== savedState) {
+        console.error("Invalid state. Possible CSRF attack.");
+        return;
+    }
+    const response = await fetch(`http://localhost:8080/callback?code=${code}`);
+    const data = await response.json();
+    console.log(data);
 }

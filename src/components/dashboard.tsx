@@ -1,37 +1,47 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserProfile, Playlist } from "./types";
-import { redirectToAuthCodeFlow, getAccessToken } from "./auth";
+import { redirectToAuthCodeFlow, handleServerCallback } from "./auth";
 
 function DashboardPage() {
   const clientId = "98fc1b94f1e445cebcfe067a505598ba";
   const navigate = useNavigate();
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get("code");
-
   const [profile, setProfile] = useState<UserProfile>();
   const [playlists, setPlaylists] = useState<Playlist>();
   const [connected, setConnected] = useState(false);
 
-  async function fetchProfile(code: string): Promise<any> {
-    const result = await fetch("https://api.spotify.com/v1/me", {
-      method: "GET",
-      headers: { Authorization: `Bearer ${code}` },
-    });
-    return await result.json();
-  }
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  // const UserProfile = {
+  //   country: params.get("country"),
+  //   display_name: params.get("display_name"),
+  //   email: params.get("email"),
+  //   href: params.get("href"),
+  //   id: params.get("id"),
+  //   images: params.get("images"),
+  //   product: params.get("product"),
+  //   type: params.get("type"),
+  //   uri: params.get("uri"),
+  // }
 
-  async function fetchPlaylists(code: string): Promise<any> {
-    const result = await fetch("https://api.spotify.com/v1/me/playlists", {
-      method: "GET",
-      headers: { Authorization: `Bearer ${code}` },
-      });
-    return await result.json();
-  }
+  // async function fetchProfile(code: string): Promise<any> {
+  //   const result = await fetch("https://api.spotify.com/v1/me", {
+  //     method: "GET",
+  //     headers: { Authorization: `Bearer ${code}` },
+  //   });
+  //   return await result.json();
+  // }
+
+  // async function fetchPlaylists(code: string): Promise<any> {
+  //   const result = await fetch("https://api.spotify.com/v1/me/playlists", {
+  //     method: "GET",
+  //     headers: { Authorization: `Bearer ${code}` },
+  //     });
+  //   return await result.json();
+  // }
 
   const playlistClick = async (event: React.MouseEvent<HTMLButtonElement>, playlistId: string) => {
     event.preventDefault();
-    console.log("playlist clicked", playlistId);
     navigate(`/playlist/${playlistId}`);
   }
 
@@ -39,20 +49,22 @@ function DashboardPage() {
     event.preventDefault();
     if (!code) {
       redirectToAuthCodeFlow(clientId);
-    } 
+      // await new Promise(resolve => setTimeout(resolve, 5000));
+      await handleServerCallback();
+    }
     else {
-      const accessToken = await getAccessToken(clientId, code);
-      const usr = await fetchProfile(accessToken);
-      const usr_playlists = await fetchPlaylists(accessToken);
+    //   const accessToken = await getAccessToken(clientId, code);
+    //   const usr = await fetchProfile(accessToken);
+    //   const usr_playlists = await fetchPlaylists(accessToken);
 
-      if(usr.error || usr_playlists.error) {
-        console.error(usr.error.message); // Invalid access token or something similar
-        redirectToAuthCodeFlow(clientId);
-      } else {
-        setProfile(usr);
-        setPlaylists(usr_playlists);
-        setConnected(true);
-      }
+    //   // if(usr.error || usr_playlists.error) {
+    //   //   console.error(usr.error.message); // Invalid access token or something similar
+    //   //   redirectToAuthCodeFlow(clientId);
+    //   // } else {
+    //   //   setProfile(usr);
+    //   //   setPlaylists(usr_playlists);
+    //   //   setConnected(true);
+    //   // }
     }
   };
 
@@ -79,7 +91,6 @@ function DashboardPage() {
                     <h1 className="max-w-[350px] text-white text-4xl tracking-normal text-left mt-2">
                       Connect to Spotify
                     </h1>
-
                     <button
                       className="relative shrink-0 box-border appearance-none text-green-500 bg-green-200 rounded text-center cursor-pointer w-auto self-center mr-auto mt-5 px-6 py-4"
                       onClick={(event)=>spotifyConnect(event)} disabled={connected}
