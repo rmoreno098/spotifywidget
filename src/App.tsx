@@ -3,7 +3,6 @@ import WelcomePage from './components/welcome';
 import PlaylistPage from './components/playlist';
 import DashboardPage from './components/dashboard';
 
-
 function App() {
   return (
     <Router>
