@@ -4,16 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"log"
+	"net/http"
 	"net/url"
+	"spotify-widget/server/types"
 	"strings"
 	"github.com/rs/cors"
-	"spotify-widget/server/types"
-	"github.com/pocketbase/pocketbase"
-    "github.com/pocketbase/pocketbase/apis"
-    "github.com/pocketbase/pocketbase/core"
-	// "os"
 )
 
 var verifier string
@@ -65,51 +61,25 @@ func verifierHandler(w http.ResponseWriter, r *http.Request) {
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")	// retrieve the code found in the parameters of the callback URL
 	if code == "" {
-		fmt.Println("Authentication failed")
+		log.Println("Authentication failed")
 		return
 	}
 
 	token := getAccessToken(code, verifier)
 	if token == "error" {
-		fmt.Println("Authentication failed")
+		log.Println("Authentication failed")
 		return
 	}
 
-	id, name, err := fetchProfile(token)
-	if err != nil {
-		log.Println(err)
-	}
+	// id, name, err := fetchProfile(token)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
 		
-	res, err := app.Dao().DB().
-		NewQuery("CREATE INDEX name_idx ON users (name)").
-		Execute()
-
-	// store this in the database
-	
+	// store id and name in the database (token too but needs to be encoded first)
 
 	http.Redirect(w, r, "http://localhost:5173/dashboard", http.StatusFound)
 }
-
-// func profileHandler(w http.ResponseWriter, r *http.Request) {
-// 	token := fetchToken()
-// 	resp, err := fetchProfile(token)
-// 	if err != nil {
-// 		fmt.Println("Error fetching profile")
-// 		fmt.Println(err)
-// 		return
-// 	}
-// 	defer resp.Body.Close()
-
-// 	rawJSON, err := io.ReadAll(resp.Body)
-//     if err != nil {
-//         http.Error(w, "Error reading Spotify response", http.StatusInternalServerError)
-//         return
-//     }
-
-//     // Send the raw JSON data to the frontend
-//     w.Header().Set("Content-Type", "application/json")
-//     w.Write(rawJSON)
-// }
 
 func getAccessToken(code string, verifier string) string {
 	params := url.Values{
@@ -149,16 +119,6 @@ func getAccessToken(code string, verifier string) string {
 }
 
 func main() {
-	app := pocketbase.New()
-	// app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
-    //     e.Router.GET("/*", apis.StaticDirectoryHandler(os.DirFS("./pb_public"), false))
-    //     return nil
-    // })
-
-    if err := app.Start(); err != nil {
-        log.Fatal(err)
-    }
-
 	corsHandler := cors.Default()
 
 	fmt.Println("Server is now runnning on port 8080!")
@@ -170,10 +130,6 @@ func main() {
 	http.HandleFunc("/verifier", func(w http.ResponseWriter, r *http.Request) {
         corsHandler.Handler(http.HandlerFunc(verifierHandler)).ServeHTTP(w, r)
     })
-
-	// http.HandleFunc("/getProfile", func(w http.ResponseWriter, r *http.Request) {
-	// 	corsHandler.Handler(http.HandlerFunc(profileHandler)).ServeHTTP(w, r)
-	// })
 
 	http.ListenAndServe(":8080", nil)
 }
