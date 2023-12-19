@@ -30,25 +30,25 @@ export async function redirectToAuthCodeFlow(clientId: string) {
     document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
-export async function getAccessToken(clientId: string, code: string) {
-    const verifier = localStorage.getItem("verifier");
+// async function getAccessToken(clientId: string, code: string) {
+//     const verifier = localStorage.getItem("verifier");
 
-    const params = new URLSearchParams();
-    params.append("client_id", clientId);
-    params.append("grant_type", "authorization_code");
-    params.append("code", code);
-    params.append("redirect_uri", "http://localhost:8080/callback");
-    params.append("code_verifier", verifier!);
+//     const params = new URLSearchParams();
+//     params.append("client_id", clientId);
+//     params.append("grant_type", "authorization_code");
+//     params.append("code", code);
+//     params.append("redirect_uri", "http://localhost:8080/callback");
+//     params.append("code_verifier", verifier!);
 
-    const result = await fetch("https://accounts.spotify.com/api/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: params
-    });
+//     const result = await fetch("https://accounts.spotify.com/api/token", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/x-www-form-urlencoded" },
+//         body: params
+//     });
 
-    const { access_token } = await result.json();
-    return access_token;
-}
+//     const { access_token } = await result.json();
+//     return access_token;
+// }
 
 function generateCodeVerifier(length: number) {
     let text = '';
@@ -69,17 +69,10 @@ async function generateCodeChallenge(codeVerifier: string) {
         .replace(/=+$/, '');
 }
 
-export async function handleServerCallback() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-    const state = urlParams.get("state");
-    const savedState = localStorage.getItem("state");
-
-    if (state !== savedState) {
-        console.error("Invalid state. Possible CSRF attack.");
-        return;
-    }
-    const response = await fetch(`http://localhost:8080/callback?code=${code}`);
-    const data = await response.json();
-    console.log(data);
+export async function getPlaylists() {
+    const result = await fetch('http://localhost:8080/getPlaylists');
+    const playlists = await result.json();
+    console.log(playlists);
+    
+    return playlists;
 }

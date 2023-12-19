@@ -4,117 +4,39 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
+	"spotify-widget/server/types"
 	"strings"
 	"github.com/rs/cors"
 )
 
-type VerResp struct {
-	Verifier string `json:"verifier"`
-}
-
-type TokenResp struct {
-	AccessToken string `json:"access_token"`
-	TokenType string `json:"token_type"`
-	ExpiresIn int `json:"expires_in"`
-	RefreshToken string `json:"refresh_token"`
-	Scope string `json:"scope"`
-}
-
-type UserProfile struct {
-	Country          string            `json:"country"`
-	DisplayName      string            `json:"display_name"`
-	Email            string            `json:"email"`
-	ExplicitContent  ExplicitContent   `json:"explicit_content"`
-	ExternalURLs     ExternalURLs      `json:"external_urls"`
-	Followers        Followers         `json:"followers"`
-	Href             string            `json:"href"`
-	ID               string            `json:"id"`
-	Images           []Image           `json:"images"`
-	Product          string            `json:"product"`
-	Type             string            `json:"type"`
-	URI              string            `json:"uri"`
-}
-
-type ExplicitContent struct {
-	FilterEnabled bool `json:"filter_enabled"`
-	FilterLocked  bool `json:"filter_locked"`
-}
-
-type ExternalURLs struct {
-	Spotify string `json:"spotify"`
-}
-
-type Followers struct {
-	Href  string `json:"href"`
-	Total int    `json:"total"`
-}
-
-type Image struct {
-	URL    string `json:"url"`
-	Height int    `json:"height"`
-	Width  int    `json:"width"`
-}
-
-type Playlist struct {
-	Href     string `json:"href"`
-	Items    []Item `json:"items"`
-	Limit    int    `json:"limit"`
-	Next     string `json:"next"`
-	Offset   int    `json:"offset"`
-	Previous string `json:"previous"`
-	Total    int    `json:"total"`
-}
-
-type Item struct {
-	Collaborative bool          `json:"collaborative"`
-	Description   string        `json:"description"`
-	ExternalURLs  ExternalURLs  `json:"external_urls"`
-	Href          string        `json:"href"`
-	ID            string        `json:"id"`
-	Images        []Image       `json:"images"`
-	Name          string        `json:"name"`
-	Owner         Owner         `json:"owner"`
-	PrimaryColor  string        `json:"primary_color"`
-	Public        bool          `json:"public"`
-	SnapshotID    string        `json:"snapshot_id"`
-	Tracks        Tracks        `json:"tracks"`
-	Type          string        `json:"type"`
-	URI           string        `json:"uri"`
-}
-
-type Tracks struct {
-	Href  string `json:"href"`
-	Total int    `json:"total"`
-}
-
-type Owner struct {
-	DisplayName  string       `json:"display_name"`
-	ExternalURLs ExternalURLs `json:"external_urls"`
-	Href         string       `json:"href"`
-	ID           string       `json:"id"`
-	Type         string       `json:"type"`
-	URI          string       `json:"uri"`
-}
-
 var verifier string
 
-func fetchProfile(token string) (*http.Response, error) {
+func fetchProfile(token string) (string, string, error) {
 	url := "https://api.spotify.com/v1/me"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 	req.Header.Set("Authorization", "Bearer " + token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 
-	return resp, nil
+	// parse the response body and only return the user's id and display name
+	var x types.UserProfile
+	err = json.NewDecoder(resp.Body).Decode(&x)
+	if err != nil {
+		return "", "", err
+	}
+	resp.Body.Close()
+
+	return x.ID, x.DisplayName, nil
 }
 
 func verifierHandler(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +47,7 @@ func verifierHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var x VerResp	// create a variable of type verResp
+	var x types.VerResp	// create a variable of type verResp
     err = json.Unmarshal(body, &x)	// store body into x
 	if err != nil {
 		fmt.Println(err)
@@ -139,33 +61,24 @@ func verifierHandler(w http.ResponseWriter, r *http.Request) {
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")	// retrieve the code found in the parameters of the callback URL
 	if code == "" {
-		fmt.Println("Authentication failed")
+		log.Println("Authentication failed")
 		return
 	}
 
 	token := getAccessToken(code, verifier)
 	if token == "error" {
-		fmt.Println("Authentication failed")
+		log.Println("Authentication failed")
 		return
 	}
 
-	resp, err := fetchProfile(token)
-	if err != nil {
-		fmt.Println("Error fetching profile")
-		fmt.Println(err)
-		return
-	}
-	defer resp.Body.Close()
+	// id, name, err := fetchProfile(token)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+		
+	// store id and name in the database (token too but needs to be encoded first)
 
-	rawJSON, err := io.ReadAll(resp.Body)
-    if err != nil {
-        http.Error(w, "Error reading Spotify response", http.StatusInternalServerError)
-        return
-    }
-
-    // Send the raw JSON data to the frontend
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(rawJSON)
+	http.Redirect(w, r, "http://localhost:5173/dashboard", http.StatusFound)
 }
 
 func getAccessToken(code string, verifier string) string {
@@ -193,9 +106,8 @@ func getAccessToken(code string, verifier string) string {
 			fmt.Println(err)
 			return "error"
 		}
-
 		// Print or store the access token (response handling)
-		var x TokenResp
+		var x types.TokenResp
 		err = json.Unmarshal(responseBody, &x)
 		if err != nil {
 			fmt.Println(err)
