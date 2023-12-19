@@ -6,10 +6,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"spotify-widget/server/types"
 	"strings"
 	"github.com/rs/cors"
-	"log"
 	"spotify-widget/server/types"
 )
 var verifier string
