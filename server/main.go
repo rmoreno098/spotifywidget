@@ -34,23 +34,25 @@ func fetchProfile(token string) (string, string, error) {
 	}
 	resp.Body.Close()
 
+	log.Println("Returning: ", x.ID, x.DisplayName)
 	return x.ID, x.DisplayName, nil
 }
 
 func verifierHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)	// read the body of the request
+	body, err := io.ReadAll(r.Body) // read the body of the request
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	defer r.Body.Close()
 
-	var x types.VerResp	// create a variable of type verResp
+	var x types.VerResp // create a variable of type verResp
     err = json.Unmarshal(body, &x)	// store body into x
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	verifier = x.Verifier
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -58,21 +60,29 @@ func verifierHandler(w http.ResponseWriter, r *http.Request) {
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")	// retrieve the code found in the parameters of the callback URL
 	if code == "" {
-		log.Println("Authentication failed")
+		log.Println("No code found")
+		http.Error(w, "No Authorization Code", 1)
 		return
 	}
+	log.Println("Code parameter:", code)
 
 	token := getAccessToken(code, verifier)
-	if token == "error" {
-		log.Println("Authentication failed")
+	if token == "error" || token == "" {
+		log.Println("Fetching access token error")
+		http.Error(w, "Error fetching access token", 2)
 		return
 	}
+	log.Println("Token:", token)
 
-	// id, name, err := fetchProfile(token)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-		
+	id, name, err := fetchProfile(token)
+	if err != nil{
+		log.Println("Error fetching profile:", err)
+	}
+
+	log.Println("Name:", name)
+	log.Println("id:", id)
+
+
 	// store id and name in the database (token too but needs to be encoded first)
 
 	http.Redirect(w, r, "http://localhost:5173/dashboard", http.StatusFound)
