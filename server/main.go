@@ -10,6 +10,7 @@ import (
 	"spotify-widget/server/types"
 	"strings"
 	"github.com/rs/cors"
+	"spotify-widget/server/database"
 )
 
 var verifier string
@@ -65,20 +66,30 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// exchange the code for an access token
 	token := getAccessToken(code, verifier)
 	if token == "error" {
 		log.Println("Authentication failed")
 		return
 	}
 
-	// id, name, err := fetchProfile(token)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-		
-	// store id and name in the database (token too but needs to be encoded first)
+	// fetch the user's id and display name
+	id, name, err := fetchProfile(token)
+	if err != nil {
+		log.Println(err)
+	}
 
-	http.Redirect(w, r, "http://localhost:5173/dashboard", http.StatusFound)
+	// store the user's id, name, and token into the database
+	err = database.StoreUsrToken(id, name, token)
+	if err != nil {
+		log.Println(err)
+		http.Redirect(w, r, "http://localhost:5173/", http.StatusNotFound)
+		return
+	}
+
+	// redirect the user to the dashboard if the token was successfully stored
+	redirectURL := fmt.Sprintf("http://localhost:5173/dashboard?userId=%s", url.QueryEscape(id))
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
 func getAccessToken(code string, verifier string) string {
@@ -118,10 +129,21 @@ func getAccessToken(code string, verifier string) string {
 	}
 }
 
+func playlistsHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func main() {
+	err := database.InitDB()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer database.CloseDB()
+
 	corsHandler := cors.Default()
 
-	fmt.Println("Server is now runnning on port 8080!")
+	log.Println("Server is now runnning on port 8080!")
 
 	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
         corsHandler.Handler(http.HandlerFunc(callbackHandler)).ServeHTTP(w, r)
@@ -130,6 +152,10 @@ func main() {
 	http.HandleFunc("/verifier", func(w http.ResponseWriter, r *http.Request) {
         corsHandler.Handler(http.HandlerFunc(verifierHandler)).ServeHTTP(w, r)
     })
+
+	http.HandleFunc("/getPlaylists", func(w http.ResponseWriter, r *http.Request) {
+		corsHandler.Handler(http.HandlerFunc(playlistsHandler)).ServeHTTP(w, r)
+	})
 
 	http.ListenAndServe(":8080", nil)
 }

@@ -69,8 +69,8 @@ async function generateCodeChallenge(codeVerifier: string) {
         .replace(/=+$/, '');
 }
 
-export async function getPlaylists() {
-    const result = await fetch('http://localhost:8080/getPlaylists');
+export async function getPlaylists(clientId: string) {
+    const result = await fetch(`http://localhost:8080/getPlaylists/${clientId}`);
     const playlists = await result.json();
     console.log(playlists);
     

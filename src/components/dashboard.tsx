@@ -4,6 +4,8 @@ import { UserProfile, Playlist } from "./types";
 import { getPlaylists } from "./auth";
 
 function DashboardPage() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const clientId = urlParams.get('userId');
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile>();
   const [playlists, setPlaylists] = useState<Playlist>();
@@ -15,8 +17,12 @@ function DashboardPage() {
   }
 
   const spotifyConnect = async () => {
-    const userPlaylists = await getPlaylists();
-    // setPlaylists(userPlaylists);
+
+    if (clientId === null) {
+      return;
+    }
+    const userPlaylists = await getPlaylists(clientId);
+    setPlaylists(userPlaylists);
   };
   
   return (
