@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
+	"spotify-widget/server/types"
 	"strings"
 	"github.com/rs/cors"
 	"log"
@@ -12,21 +14,29 @@ import (
 )
 var verifier string
 
-func fetchProfile(token string) (*http.Response, error) {
+func fetchProfile(token string) (string, string, error) {
 	url := "https://api.spotify.com/v1/me"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 	req.Header.Set("Authorization", "Bearer " + token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 
-	return resp, nil
+	// parse the response body and only return the user's id and display name
+	var x types.UserProfile
+	err = json.NewDecoder(resp.Body).Decode(&x)
+	if err != nil {
+		return "", "", err
+	}
+	resp.Body.Close()
+
+	return x.ID, x.DisplayName, nil
 }
 
 func verifierHandler(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +47,7 @@ func verifierHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var x defs.VerResp	// create a variable of type verResp
+	var x types.VerResp	// create a variable of type verResp
     err = json.Unmarshal(body, &x)	// store body into x
 	if err != nil {
 		log.Println(err)
@@ -60,24 +70,14 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := fetchProfile(token)
-	if err != nil {
-		log.Println("Error fetching profile")
-		log.Println(err)
-		return
-	}
-	defer resp.Body.Close()
-	log.Println(resp)
+	// id, name, err := fetchProfile(token)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+		
+	// store id and name in the database (token too but needs to be encoded first)
 
-	rawJSON, err := io.ReadAll(resp.Body)
-    if err != nil {
-        http.Error(w, "Error reading Spotify response", http.StatusInternalServerError)
-        return
-    }
-
-    // Send the raw JSON data to the frontend
-    w.Header().Set("Content-Type", "application/json")
-    w.Write(rawJSON)
+	http.Redirect(w, r, "http://localhost:5173/dashboard", http.StatusFound)
 }
 
 func getAccessToken(code string, verifier string) string {
@@ -105,9 +105,8 @@ func getAccessToken(code string, verifier string) string {
 			log.Println(err)
 			return "error"
 		}
-
 		// Print or store the access token (response handling)
-		var x defs.TokenResp
+		var x types.TokenResp
 		err = json.Unmarshal(responseBody, &x)
 		if err != nil {
 			log.Println(err)

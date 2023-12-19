@@ -1,76 +1,24 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserProfile, Playlist } from "./types";
-import { redirectToAuthCodeFlow, handleServerCallback } from "./auth";
+import { getPlaylists } from "./auth";
 
 function DashboardPage() {
-  const clientId = "98fc1b94f1e445cebcfe067a505598ba";
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile>();
   const [playlists, setPlaylists] = useState<Playlist>();
   const [connected, setConnected] = useState(false);
-
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get("code");
-  // const UserProfile = {
-  //   country: params.get("country"),
-  //   display_name: params.get("display_name"),
-  //   email: params.get("email"),
-  //   href: params.get("href"),
-  //   id: params.get("id"),
-  //   images: params.get("images"),
-  //   product: params.get("product"),
-  //   type: params.get("type"),
-  //   uri: params.get("uri"),
-  // }
-
-  // async function fetchProfile(code: string): Promise<any> {
-  //   const result = await fetch("https://api.spotify.com/v1/me", {
-  //     method: "GET",
-  //     headers: { Authorization: `Bearer ${code}` },
-  //   });
-  //   return await result.json();
-  // }
-
-  // async function fetchPlaylists(code: string): Promise<any> {
-  //   const result = await fetch("https://api.spotify.com/v1/me/playlists", {
-  //     method: "GET",
-  //     headers: { Authorization: `Bearer ${code}` },
-  //     });
-  //   return await result.json();
-  // }
 
   const playlistClick = async (event: React.MouseEvent<HTMLButtonElement>, playlistId: string) => {
     event.preventDefault();
     navigate(`/playlist/${playlistId}`);
   }
 
-  const spotifyConnect = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    if (!code) {
-      redirectToAuthCodeFlow(clientId);
-      // await new Promise(resolve => setTimeout(resolve, 5000));
-      await handleServerCallback();
-    }
-    else {
-    //   const accessToken = await getAccessToken(clientId, code);
-    //   const usr = await fetchProfile(accessToken);
-    //   const usr_playlists = await fetchPlaylists(accessToken);
-
-    //   // if(usr.error || usr_playlists.error) {
-    //   //   console.error(usr.error.message); // Invalid access token or something similar
-    //   //   redirectToAuthCodeFlow(clientId);
-    //   // } else {
-    //   //   setProfile(usr);
-    //   //   setPlaylists(usr_playlists);
-    //   //   setConnected(true);
-    //   // }
-    }
+  const spotifyConnect = async () => {
+    const userPlaylists = await getPlaylists();
+    // setPlaylists(userPlaylists);
   };
-
-  console.log(playlists)
-  // {playlists?.items[0].images[0].url}
-
+  
   return (
     <form className="flex flex-col relative shrink-0 box-border justify-start items-start w-full bg-gray-900 p-9 max-md:mb-9 h-screen">
       <header className="flex flex-col justify-start items-start w-full max-md:gap-[px]">
@@ -93,7 +41,7 @@ function DashboardPage() {
                     </h1>
                     <button
                       className="relative shrink-0 box-border appearance-none text-green-500 bg-green-200 rounded text-center cursor-pointer w-auto self-center mr-auto mt-5 px-6 py-4"
-                      onClick={(event)=>spotifyConnect(event)} disabled={connected}
+                      onClick={spotifyConnect} disabled={connected}
                     >
                       Connect
                     </button>

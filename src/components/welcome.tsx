@@ -1,9 +1,14 @@
 import "../styles.css";
-import { useNavigate } from "react-router-dom";
+import { redirectToAuthCodeFlow } from "./auth";
 import loginImage from "../images/welcome_page.jpeg";
 
 function WelcomePage() {
-    const navigate = useNavigate();
+    const clientId = "98fc1b94f1e445cebcfe067a505598ba";
+
+    async function spotifyConnect(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+      event.preventDefault();
+      redirectToAuthCodeFlow(clientId);
+    }
     
     return (
     <div className="bg-gray-900 text-white h-screen">
@@ -21,7 +26,7 @@ function WelcomePage() {
             <h1 className="text-4xl font-bold leading-10 tracking-tighter">
               Connect To Spotfiy Like You Never Have Before
             </h1>
-            <button className="text-green-500 bg-green-200 px-4 py-2 rounded-md text-xl mt-6 max-w-xs" onClick={() => {navigate('/dashboard')}}>
+            <button className="text-green-500 bg-green-200 px-4 py-2 rounded-md text-xl mt-6 max-w-xs" onClick={(event) => spotifyConnect(event)}>
               Get Started
             </button>
           </div>
