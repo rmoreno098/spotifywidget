@@ -20,7 +20,7 @@ func main(){
 		panic(err)
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS users (email VARCHAR(256) PRIMARY KEY, name VARCHAR(64), access_token VARCHAR(255) UNIQUE NOT NULL)")
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS users (email VARCHAR(256) PRIMARY KEY, id VARCHAR(64) UNIQUE, access_token VARCHAR(255) UNIQUE NOT NULL)")
 	if err != nil{
 		log.Fatal("Create", err)
 		panic(err)

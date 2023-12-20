@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"fmt"
 	"github.com/rs/cors"
 	"spotify-widget/server/database"
 	"spotify-widget/server/types"
@@ -84,16 +85,8 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Name:", name)
 	log.Println("id:", id)
-
-
-	// fetch the user's id and display name
-	id, name, err := fetchProfile(token)
-	if err != nil {
-		log.Println(err)
-	}
-
 	// store the user's id, name, and token into the database
-	err = database.StoreUsrToken(id, name, token)
+	err = database.StoreUserToken(id, name, token)
 	if err != nil {
 		log.Println(err)
 		http.Redirect(w, r, "http://localhost:5173/", http.StatusNotFound)

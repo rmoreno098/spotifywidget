@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"log"
-
 	"github.com/mattn/go-sqlite3"
 )
 
@@ -40,11 +39,10 @@ func CloseDB() {
 	}
 }
 
-func StoreUsrToken(id string, name string, token string) error {
+func StoreUserToken(id string, name string, token string) error {
 	if DB == nil {
 		return errors.New("DATABASE: DB is nil")
 	}
-
 	// check if user is already in the db
 	var count int
 	err := DB.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", id).Scan(&count)
@@ -63,11 +61,23 @@ func StoreUsrToken(id string, name string, token string) error {
 			return err
 		}
 	}
+	log.Println("DATABASE: Successfully stored user token")
+	rows, err := DB.Query("SELECT * FROM users")
+	if err != nil {
+		log.Println("Database SELECT:", err)
+		return err
+	}
+	for rows.Next() {
+		var id, name, token string
+		if err := rows.Scan(&id, &name, &token); err != nil {
+			log.Println(err)
+		}
+	}
 
 	return nil
 }
 
-func GetUsrToken(id string) (string, error) {
+func GetUserToken(id string) (string, error){
 	if DB == nil {
 		return "", errors.New("DATABASE: DB is nil")
 	}
