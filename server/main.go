@@ -148,7 +148,8 @@ func playlistsHandler(w http.ResponseWriter, r *http.Request) {
 	// retrieve the user's token from the database
 	token, err := database.GetUsrToken(id)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error retreiving user token from DB", err)
+		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
@@ -156,7 +157,8 @@ func playlistsHandler(w http.ResponseWriter, r *http.Request) {
 	// fetch the user's playlists
 	resp, err := fetchPlaylists(token)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error fetching playlists from Spotify", err)
+		http.Error(w, "Error fetching playlists from Spotify", http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()

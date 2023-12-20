@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserProfile, Playlist } from "./types";
 import { getPlaylists } from "./auth";
@@ -6,12 +6,26 @@ import { getPlaylists } from "./auth";
 function DashboardPage() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
-  
+
   const userId = urlParams.get('userId');
   const userName = urlParams.get('name');
   const [profile, setProfile] = useState<UserProfile["display_name"]>();
   const [playlists, setPlaylists] = useState<Playlist>();
   const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    if (userName !== null) {
+      if(sessionStorage.getItem(userName)) {
+        const userPlaylists = sessionStorage.getItem(userName);
+        if (userPlaylists !== null ) {
+          const parsed = JSON.parse(userPlaylists);
+          setProfile(userName);
+          setPlaylists(parsed);
+          setConnected(true);
+        }
+      }
+    }
+  }, []);
 
   const playlistClick = async (event: React.MouseEvent<HTMLButtonElement>, playlistId: string) => {
     event.preventDefault();
@@ -21,19 +35,19 @@ function DashboardPage() {
   const spotifyConnect = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     if (userId === null || userName === null) {
-      console.log("Error getting user id")
+      console.log("Error getting user info")
       return;
-    } else {
-      const userPlaylists = await getPlaylists(userId);
-      if (userPlaylists === null ) {
-        console.log("Error getting user playlists")
-        return;
-      } else {
-        setProfile(userName);
-        setPlaylists(userPlaylists);
-        setConnected(true);
-      }
+    } 
+    // get user's playlists from Spotify
+    const userPlaylists = await getPlaylists(userId);
+    if (userPlaylists === null ) {
+      console.log("Error getting user playlists")
+      return;
     }
+    setProfile(userName);
+    setPlaylists(userPlaylists);
+    setConnected(true);
+    sessionStorage.setItem(userName, JSON.stringify(userPlaylists));
   };
   
   return (

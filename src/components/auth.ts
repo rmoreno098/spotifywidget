@@ -53,9 +53,7 @@ export async function getPlaylists(userId: string) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId }),
     });
+
     const playlists = await result.json();
-    console.log("got playlists here: ");
-    console.log(playlists);
-    
     return playlists;
 }
