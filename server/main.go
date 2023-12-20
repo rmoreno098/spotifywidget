@@ -59,7 +59,8 @@ func verifierHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query().Get("code")	// retrieve the code found in the parameters of the callback URL
+	// retrieve the code found in the parameters of the callback URL
+	code := r.URL.Query().Get("code")	
 	if code == "" {
 		log.Println("No code found")
 		http.Error(w, "No Authorization Code", 1)
@@ -100,7 +101,7 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// redirect the user to the dashboard if the token was successfully stored
-	redirectURL := fmt.Sprintf("http://localhost:5173/dashboard?userId=%s", url.QueryEscape(id))
+	redirectURL := fmt.Sprintf("http://localhost:5173/dashboard?userId=%s&name=%s", url.QueryEscape(id), url.QueryEscape(name))
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
@@ -142,7 +143,65 @@ func getAccessToken(code string, verifier string) string {
 }
 
 func playlistsHandler(w http.ResponseWriter, r *http.Request) {
+	// retrieve the user's id from the request
+	body, err := io.ReadAll(r.Body)	// read the body of the request
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	var x types.PlaylistResp	// create a variable of type PlaylistResp
+    err = json.Unmarshal(body, &x)	// store body into x
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	id := x.UserId
 
+	// retrieve the user's token from the database
+	token, err := database.GetUsrToken(id)
+	if err != nil {
+		log.Println("Error retreiving user token from DB", err)
+		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	// fetch the user's playlists
+	resp, err := fetchPlaylists(token)
+	if err != nil {
+		log.Println("Error fetching playlists from Spotify", err)
+		http.Error(w, "Error fetching playlists from Spotify", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// read the response body
+	rawJSON, err := io.ReadAll(resp.Body)
+    if err != nil {
+        http.Error(w, "Error reading Spotify response", http.StatusInternalServerError)
+        return
+    }
+
+	// write the response body to the client
+	w.Header().Set("Content-Type", "application/json")
+    w.Write(rawJSON)
+}
+
+func fetchPlaylists(token string) (*http.Response, error) {
+	url := "https://api.spotify.com/v1/me/playlists"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer " + token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 func main() {

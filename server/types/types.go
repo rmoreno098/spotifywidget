@@ -87,3 +87,7 @@ type Owner struct {
 	Type         string       `json:"type"`
 	URI          string       `json:"uri"`
 }
+
+type PlaylistResp struct {
+	UserId string `json:"user_id"`
+}
