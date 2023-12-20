@@ -1,22 +1,53 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserProfile, Playlist } from "./types";
 import { getPlaylists } from "./auth";
 
 function DashboardPage() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<UserProfile>();
+  const urlParams = new URLSearchParams(window.location.search);
+
+  const userId = urlParams.get('userId');
+  const userName = urlParams.get('name');
+  const [profile, setProfile] = useState<UserProfile["display_name"]>();
   const [playlists, setPlaylists] = useState<Playlist>();
   const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    if (userName !== null) {
+      if(sessionStorage.getItem(userName)) {
+        const userPlaylists = sessionStorage.getItem(userName);
+        if (userPlaylists !== null ) {
+          const parsed = JSON.parse(userPlaylists);
+          setProfile(userName);
+          setPlaylists(parsed);
+          setConnected(true);
+        }
+      }
+    }
+  }, []);
 
   const playlistClick = async (event: React.MouseEvent<HTMLButtonElement>, playlistId: string) => {
     event.preventDefault();
     navigate(`/playlist/${playlistId}`);
   }
 
-  const spotifyConnect = async () => {
-    const userPlaylists = await getPlaylists();
-    // setPlaylists(userPlaylists);
+  const spotifyConnect = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (userId === null || userName === null) {
+      console.log("Error getting user info")
+      return;
+    } 
+    // get user's playlists from Spotify
+    const userPlaylists = await getPlaylists(userId);
+    if (userPlaylists === null ) {
+      console.log("Error getting user playlists")
+      return;
+    }
+    setProfile(userName);
+    setPlaylists(userPlaylists);
+    setConnected(true);
+    sessionStorage.setItem(userName, JSON.stringify(userPlaylists));
   };
   
   return (
@@ -29,7 +60,7 @@ function DashboardPage() {
                 <div className="flex flex-col max-w-full justify-center self-stretch w-full items-start h-full mx-auto max-md:gap-9 max-md:h-auto max-md:grow-0 max-md:mb-9">
                   <div className="flex flex-col justify-center items-start w-auto self-stretch">
                     <h1 className="max-w-[400px] text-white text-4xl tracking-normal text-left mt-2">
-                    Hello {profile?.display_name} 👋
+                    Hello {profile} 👋
                     </h1>                    
                   </div>
                 </div>
@@ -41,7 +72,7 @@ function DashboardPage() {
                     </h1>
                     <button
                       className="relative shrink-0 box-border appearance-none text-green-500 bg-green-200 rounded text-center cursor-pointer w-auto self-center mr-auto mt-5 px-6 py-4"
-                      onClick={spotifyConnect} disabled={connected}
+                      onClick={(event)=>spotifyConnect(event)} disabled={connected}
                     >
                       Connect
                     </button>
