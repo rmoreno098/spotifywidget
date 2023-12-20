@@ -1,8 +1,6 @@
 export async function redirectToAuthCodeFlow(clientId: string) {
     const verifier = generateCodeVerifier(128);
     const challenge = await generateCodeChallenge(verifier);
-
-    // localStorage.setItem("verifier", verifier);
     
     // send verifier to server
     const result = await fetch('http://localhost:8080/verifier', {
@@ -30,26 +28,6 @@ export async function redirectToAuthCodeFlow(clientId: string) {
     document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
-// async function getAccessToken(clientId: string, code: string) {
-//     const verifier = localStorage.getItem("verifier");
-
-//     const params = new URLSearchParams();
-//     params.append("client_id", clientId);
-//     params.append("grant_type", "authorization_code");
-//     params.append("code", code);
-//     params.append("redirect_uri", "http://localhost:8080/callback");
-//     params.append("code_verifier", verifier!);
-
-//     const result = await fetch("https://accounts.spotify.com/api/token", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-//         body: params
-//     });
-
-//     const { access_token } = await result.json();
-//     return access_token;
-// }
-
 function generateCodeVerifier(length: number) {
     let text = '';
     let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -69,9 +47,14 @@ async function generateCodeChallenge(codeVerifier: string) {
         .replace(/=+$/, '');
 }
 
-export async function getPlaylists(clientId: string) {
-    const result = await fetch(`http://localhost:8080/getPlaylists/${clientId}`);
+export async function getPlaylists(userId: string) {
+    const result = await fetch('http://localhost:8080/getPlaylists', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId }),
+    });
     const playlists = await result.json();
+    console.log("got playlists here: ");
     console.log(playlists);
     
     return playlists;

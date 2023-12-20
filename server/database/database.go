@@ -78,3 +78,18 @@ func StoreUsrToken(id string, name string, token string) error {
 	
 	return nil
 }
+
+func GetUsrToken(id string) (string, error) {
+	if DB == nil {
+		log.Println("DATABASE: DB is nil")
+		return "", errors.New("DATABASE: DB is nil")
+	}
+
+	var token string
+	err := DB.QueryRow("SELECT token FROM users WHERE id = ?", id).Scan(&token)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}

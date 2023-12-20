@@ -4,10 +4,12 @@ import { UserProfile, Playlist } from "./types";
 import { getPlaylists } from "./auth";
 
 function DashboardPage() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const clientId = urlParams.get('userId');
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<UserProfile>();
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  const userId = urlParams.get('userId');
+  const userName = urlParams.get('name');
+  const [profile, setProfile] = useState<UserProfile["display_name"]>();
   const [playlists, setPlaylists] = useState<Playlist>();
   const [connected, setConnected] = useState(false);
 
@@ -16,13 +18,22 @@ function DashboardPage() {
     navigate(`/playlist/${playlistId}`);
   }
 
-  const spotifyConnect = async () => {
-
-    if (clientId === null) {
+  const spotifyConnect = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (userId === null || userName === null) {
+      console.log("Error getting user id")
       return;
+    } else {
+      const userPlaylists = await getPlaylists(userId);
+      if (userPlaylists === null ) {
+        console.log("Error getting user playlists")
+        return;
+      } else {
+        setProfile(userName);
+        setPlaylists(userPlaylists);
+        setConnected(true);
+      }
     }
-    const userPlaylists = await getPlaylists(clientId);
-    setPlaylists(userPlaylists);
   };
   
   return (
@@ -35,7 +46,7 @@ function DashboardPage() {
                 <div className="flex flex-col max-w-full justify-center self-stretch w-full items-start h-full mx-auto max-md:gap-9 max-md:h-auto max-md:grow-0 max-md:mb-9">
                   <div className="flex flex-col justify-center items-start w-auto self-stretch">
                     <h1 className="max-w-[400px] text-white text-4xl tracking-normal text-left mt-2">
-                    Hello {profile?.display_name} 👋
+                    Hello {profile} 👋
                     </h1>                    
                   </div>
                 </div>
@@ -47,7 +58,7 @@ function DashboardPage() {
                     </h1>
                     <button
                       className="relative shrink-0 box-border appearance-none text-green-500 bg-green-200 rounded text-center cursor-pointer w-auto self-center mr-auto mt-5 px-6 py-4"
-                      onClick={spotifyConnect} disabled={connected}
+                      onClick={(event)=>spotifyConnect(event)} disabled={connected}
                     >
                       Connect
                     </button>
