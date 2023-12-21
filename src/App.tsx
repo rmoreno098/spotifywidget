@@ -16,7 +16,7 @@ function App() {
             element={ <DashboardPage />} 
           />
           <Route
-            path="/playlist/:playlistId"
+            path="/playlist/:userId/:playlistId/:playlistName"
             Component={PlaylistPage}
           />
         </Routes>

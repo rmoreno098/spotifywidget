@@ -91,3 +91,8 @@ type Owner struct {
 type PlaylistResp struct {
 	UserId string `json:"user_id"`
 }
+
+type TrackResp struct { 
+	UserId string `json:"user_id"`
+	PlaylistId string `json:"playlist_id"`
+}
