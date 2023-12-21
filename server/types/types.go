@@ -96,3 +96,54 @@ type TrackResp struct {
 	UserId string `json:"user_id"`
 	PlaylistId string `json:"playlist_id"`
 }
+
+type AlbumObject struct{
+	AlbumType string `json:"album_type"`
+	TotalTracks int `json:"total_tracks"`
+	ExternalURls ExternalURLs `json:"external_urls"`
+	HRef string `json:"href"`
+	Id string `json:"id"`
+	Images []Image `json:"images"`
+	Name string `json:"images"`
+}
+
+type ArtistObject struct {
+	ExternalURLs ExternalURLs `json:"external_urls"`
+	Followers Followers `json:"followers"`
+	Genres []string `json:"genres"`
+	Href string `json:"href"`
+	Id string `json:"id"`
+	Images []Image `json:"images"`
+	Name string `json:"name"`
+	Popularity int `json:"popularity"`
+	Type string `json:"type"`
+	Uri string `json:"uri"`
+}
+
+type TrackObject struct {
+	Album AlbumObject `json:"album"`
+	Artists []ArtistObject `json:"artists"`
+	DiscNumber int `json:"disc_number"`
+	Duration int `json:"duration_ms"`
+	Explicit bool `json:"explicit"`
+	Href string `json:"href"`
+	ID string `json:"id"`
+	Name string `json:"name"`
+	Uri string `json:"uri"`
+}
+
+type TopItems struct{
+	Href string `json:"href"`
+	Limit int `json:"limit"`
+	Next string `json:"next"`
+	Offset int `json:"offset"`
+	Previous string `json:"previous"`
+	Total string `json:"total"`
+	Items []interface{} `json:"items"`
+}
+
+
+type AnalyzerResponse struct{
+	Artists []ArtistObject `json:"artists"`
+	Playlist []TrackObject `json:"artists"`
+}

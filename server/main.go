@@ -135,6 +135,26 @@ func getAccessToken(code string, verifier string) string {
 	}
 }
 
+func fetchTopItems(token string) 
+
+func analyzerHandler(w http.ResponseWriter, r *http.Request){
+	body, err := io.ReadAll(r.Body)
+	if err != nil{
+		log.Println("analyzerHandler - body", err)
+		return
+	}
+	var x types.PlaylistResp
+	err = json.Unmarshal(body, &x)
+	id := x.UserId
+	token, err := database.GetUserToken(id)
+	if err != nil{
+		log.Println("Analyzer - fetching token from DB:", err)
+		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+}
+
 func playlistsHandler(w http.ResponseWriter, r *http.Request) {
 	// retrieve the user's id from the request
 	body, err := io.ReadAll(r.Body)	// read the body of the request
@@ -197,7 +217,7 @@ func tracksHandler(w http.ResponseWriter, r *http.Request) {
 	playlist := x.PlaylistId
 
 	// retrieve the user's token from the database
-	token, err := database.GetUsrToken(user)
+	token, err := database.GetUserToken(user)
 	if err != nil {
 		log.Println("Error retreiving user token from DB", err)
 		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
@@ -285,6 +305,10 @@ func main() {
 
 	http.HandleFunc("/getTracks", func(w http.ResponseWriter, r *http.Request) {
 		corsHandler.Handler(http.HandlerFunc(tracksHandler)).ServeHTTP(w, r)
+	})
+
+	http.HandleFunc("/analyzer", func(w http.ResponseWriter, r *http.Request) {
+		corsHandler.Handler(http.HandlerFunc(analyzerHandler)).ServeHTTP(w, r)
 	})
 
 	http.ListenAndServe(":8080", nil)
