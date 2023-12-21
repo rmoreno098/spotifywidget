@@ -19,6 +19,7 @@ function DashboardPage() {
         const userPlaylists = sessionStorage.getItem(userName);
         if (userPlaylists !== null ) {
           const parsed = JSON.parse(userPlaylists);
+          console.log(parsed);
           setProfile(userName);
           setPlaylists(parsed);
           setConnected(true);
@@ -27,9 +28,9 @@ function DashboardPage() {
     }
   }, []);
 
-  const playlistClick = async (event: React.MouseEvent<HTMLButtonElement>, playlistId: string) => {
+  const playlistClick = async (event: React.MouseEvent<HTMLButtonElement>, playlistId: string, playlistName: string) => {
     event.preventDefault();
-    navigate(`/playlist/${playlistId}`);
+    navigate(`/playlist/${userId}/${playlistId}/${playlistName}`);
   }
 
   const spotifyConnect = async (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -87,7 +88,7 @@ function DashboardPage() {
                 <div className="flex flex-col relative shrink-0 box-border w-full">
                   <header className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
                     <div className="flex flex-col items-stretch w-full max-md:w-full max-md:ml-0">
-                        {connected ? ( <></> ) : (
+                        {connected ? ( null ) : (
                           <span className="text-white text-4xl tracking-normal text-left mt-2">
                             Connect to see your playlists 🎶
                           </span>
@@ -104,13 +105,13 @@ function DashboardPage() {
       <section className="flex flex-col max-w-full self-stretch w-auto mt-6">
         <header className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
             {playlists?.items.map((playlist) => (
-              <div className="flex flex-col items-stretch w-3/12 max-md:w-full max-md:ml-0">
-                <button onClick={(event)=>playlistClick(event, playlist.id)}>
+              <div key={playlist.id} className="flex flex-col items-stretch w-3/12 max-md:w-full max-md:ml-0">
+                <button onClick={(event)=>playlistClick(event, playlist.id, playlist.name)}>
                   <img
                     loading="lazy"
                     key={playlist.id}
-                    src={playlist.images[0]?.url || "default-playlist-image.jpg"}
-                    className="aspect-square object-cover object-bottom w-full shrink-0 box-border min-h-[20px] min-w-[20px] overflow-hidden h-full m-auto rounded-lg max-md:my-6"
+                    src={playlist.images[0]?.url}
+                    className="aspect-square object-cover object-bottom w-full shrink-0 box-border border-black hover:border-green-500 overflow-hidden h-full m-auto rounded-lg max-md:my-6"
                     alt={playlist.name}
                   />
                 </button>
