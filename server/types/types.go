@@ -88,7 +88,7 @@ type Owner struct {
 	URI          string       `json:"uri"`
 }
 
-type PlaylistResp struct {
+type FrontEndRequest struct {
 	UserId string `json:"user_id"`
 }
 
@@ -144,6 +144,6 @@ type TopItems struct{
 
 
 type AnalyzerResponse struct{
-	Artists []ArtistObject `json:"artists"`
-	Playlist []TrackObject `json:"artists"`
+	Artists TopItems `json:"artists"`
+	Playlist TopItems `json:"artists"`
 }

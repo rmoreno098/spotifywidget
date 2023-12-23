@@ -2,15 +2,15 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
-	"fmt"
-	"github.com/rs/cors"
 	"spotify-widget/server/database"
 	"spotify-widget/server/types"
+	"strings"
+	"github.com/rs/cors"
 )
 var verifier string
 
@@ -25,6 +25,7 @@ func fetchProfile(token string) (string, string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Println(resp)
 		return "", "", err
 	}
 
@@ -135,17 +136,48 @@ func getAccessToken(code string, verifier string) string {
 	}
 }
 
-func fetchTopItems(token string) 
+func fetchTopItems(token string){
+	var result types.AnalyzerResponse // Struct of both top artists and tracks
+	log.Println("Token:", token)
+	URL := fmt.Sprintf("https://api.spotify.com/v1/me/top/%s?limit=10", "artists")
+	log.Println("Sprintf:", URL)
+	req, err := http.NewRequest(http.MethodGet, URL, nil) // Build request
+	if err != nil{
+		log.Println("FetchItems err: ", err)
+		return 
+	}
+	req.Header.Set("Authorization", "Bearer " + token)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil && resp.Status != "200 OK" {
+		log.Println("fetchTopItems req err:", err)
+	}
+	log.Println("Top artists response: ", resp.Status)
+	JSON, err := io.ReadAll(resp.Body) // Reading in JSON and parsing
+	err = json.Unmarshal(JSON, &result.Artists)
+	if err != nil{
+		log.Println("fetchTopItems: err decoding artists - ", err)
+		return
+	}
+	log.Println(result.Artists)
+
+	URL = fmt.Sprintf("https://api.spotify.com/v1/me/top/%s?limit=10", "tracks") // Now fetch the tracks
+	log.Println("Sprintf:", URL)
+	req, err = http.NewRequest(http.MethodGet, URL, nil)
+
+}
 
 func analyzerHandler(w http.ResponseWriter, r *http.Request){
 	body, err := io.ReadAll(r.Body)
+	log.Println("Incoming request body", body)
 	if err != nil{
 		log.Println("analyzerHandler - body", err)
 		return
 	}
-	var x types.PlaylistResp
+	var x types.FrontEndRequest
 	err = json.Unmarshal(body, &x)
 	id := x.UserId
+	log.Println("analyzerHandler id:", id)
 	token, err := database.GetUserToken(id)
 	if err != nil{
 		log.Println("Analyzer - fetching token from DB:", err)
@@ -153,6 +185,7 @@ func analyzerHandler(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	defer r.Body.Close()
+	fetchTopItems(token)
 }
 
 func playlistsHandler(w http.ResponseWriter, r *http.Request) {
@@ -162,7 +195,7 @@ func playlistsHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	var x types.PlaylistResp	// create a variable of type PlaylistResp
+	var x types.FrontEndRequest	// create a variable of type PlaylistResp
     err = json.Unmarshal(body, &x)	// store body into x
 	if err != nil {
 		fmt.Println(err)
