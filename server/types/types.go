@@ -132,18 +132,35 @@ type TrackObject struct {
 	Uri string `json:"uri"`
 }
 
-type TopItems struct{
+type TopArtists struct{
 	Href string `json:"href"`
 	Limit int `json:"limit"`
 	Next string `json:"next"`
 	Offset int `json:"offset"`
 	Previous string `json:"previous"`
-	Total string `json:"total"`
-	Items []interface{} `json:"items"`
+	Total int `json:"total"`
+	Items []ArtistObject `json:"items"`
+}
+
+type TopTracks struct{
+	Href string `json:"href"`
+	Limit int `json:"limit"`
+	Next string `json:"next"`
+	Offset int `json:"offset"`
+	Previous string `json:"previous"`
+	Total int `json:"total"`
+	Items []TrackObject `json:"items"`
+}
+
+type AnalyzerResponse struct{
+	Artists TopArtists `json:"artists"`
+	Tracks TopTracks `json:"tracks"`
 }
 
 
-type AnalyzerResponse struct{
-	Artists TopItems `json:"artists"`
-	Playlist TopItems `json:"artists"`
+func PackAnalyzer(tracks TopTracks, artists TopArtists) AnalyzerResponse{
+	var result AnalyzerResponse
+	result.Tracks = tracks
+	result.Artists = artists
+	return result
 }

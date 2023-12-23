@@ -136,15 +136,16 @@ func getAccessToken(code string, verifier string) string {
 	}
 }
 
-func fetchTopItems(token string){
-	var result types.AnalyzerResponse // Struct of both top artists and tracks
+func fetchTopItems(token string) *types.AnalyzerResponse{
+	var artists types.TopArtists // Struct of both top artists and tracks
+	var tracks types.TopTracks
 	log.Println("Token:", token)
-	URL := fmt.Sprintf("https://api.spotify.com/v1/me/top/%s?limit=10", "artists")
+	URL := fmt.Sprintf("https://api.spotify.com/v1/me/top/%s?offset=0", "artists")
 	log.Println("Sprintf:", URL)
 	req, err := http.NewRequest(http.MethodGet, URL, nil) // Build request
 	if err != nil{
 		log.Println("FetchItems err: ", err)
-		return 
+		return nil
 	}
 	req.Header.Set("Authorization", "Bearer " + token)
 	client := &http.Client{}
@@ -152,19 +153,36 @@ func fetchTopItems(token string){
 	if err != nil && resp.Status != "200 OK" {
 		log.Println("fetchTopItems req err:", err)
 	}
-	log.Println("Top artists response: ", resp.Status)
 	JSON, err := io.ReadAll(resp.Body) // Reading in JSON and parsing
-	err = json.Unmarshal(JSON, &result.Artists)
+	err = json.Unmarshal(JSON, &artists)
 	if err != nil{
 		log.Println("fetchTopItems: err decoding artists - ", err)
-		return
+		return nil
 	}
-	log.Println(result.Artists)
 
-	URL = fmt.Sprintf("https://api.spotify.com/v1/me/top/%s?limit=10", "tracks") // Now fetch the tracks
+	URL = fmt.Sprintf("https://api.spotify.com/v1/me/top/%s?offset=0", "tracks") // Now fetch the tracks
 	log.Println("Sprintf:", URL)
 	req, err = http.NewRequest(http.MethodGet, URL, nil)
-
+	req.Header.Set("Authorization", "Bearer " + token)
+	log.Println("Tracks URL:", req)
+	if err != nil{
+		log.Println("fetchTopItems:", err)
+		return nil
+	}
+	resp, err = client.Do(req)
+	if err != nil{
+		log.Println("fetchTopItems req err:", err)
+		return nil
+	}
+	JSON, err = io.ReadAll(resp.Body)
+	log.Println("Tracks response status:", resp.Status)
+	err = json.Unmarshal(JSON, &tracks)
+	if err != nil{
+		log.Println("fetchTopItems: err decoding tracks -", err)
+		return nil
+	}
+	result := types.PackAnalyzer(tracks, artists) 
+	return &result
 }
 
 func analyzerHandler(w http.ResponseWriter, r *http.Request){
@@ -185,7 +203,13 @@ func analyzerHandler(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	defer r.Body.Close()
-	fetchTopItems(token)
+	response := fetchTopItems(token)
+	if response == nil{
+		log.Println("Analyzer: did not fetch top items -", err)
+	}
+	result, err := json.Marshal(response)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(result)
 }
 
 func playlistsHandler(w http.ResponseWriter, r *http.Request) {
