@@ -14,6 +14,19 @@ import (
 )
 var verifier string
 
+func refreshToken(token string, id string) string{
+	URL := "https://accounts.spotify.com/api/token"
+	req, err := http.NewRequest(http.MethodPost, URL, nil)
+	if err != nil{
+		log.Println("Refresh token err: ", err)
+		return ""
+	}
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	return "placeholder"
+}
+
 func fetchProfile(token string) (string, string, error) {
 	url := "https://api.spotify.com/v1/me"
 	req, err := http.NewRequest("GET", url, nil)
@@ -27,6 +40,9 @@ func fetchProfile(token string) (string, string, error) {
 	if err != nil {
 		log.Println(resp)
 		return "", "", err
+	}else if resp.StatusCode == 401{
+		// Refresh token
+
 	}
 
 	// parse the response body and only return the user's id and display name
@@ -71,15 +87,15 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Code parameter:", code)
 
 	// exchange the code for an access token
-	token := getAccessToken(code, verifier)
-	if token == "error" || token == "" {
+	access_token, refreshToken := getAccessToken(code, verifier)
+	if access_token == "error" || access_token == "" {
 		log.Println("Fetching access token error")
 		http.Error(w, "Error fetching access token", 2)
 		return
 	}
-	log.Println("Token:", token)
+	log.Println("Token:", access_token)
 
-	id, name, err := fetchProfile(token)
+	id, name, err := fetchProfile(access_token)
 	if err != nil{
 		log.Println("Error fetching profile:", err)
 	}
@@ -87,7 +103,7 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Name:", name)
 	log.Println("id:", id)
 	// store the user's id, name, and token into the database
-	err = database.StoreUserToken(id, name, token)
+	err = database.StoreUserToken(id, name, access_token, refreshToken)
 	if err != nil {
 		log.Println(err)
 		http.Redirect(w, r, "http://localhost:5173/", http.StatusNotFound)
@@ -99,7 +115,7 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
-func getAccessToken(code string, verifier string) string {
+func getAccessToken(code string, verifier string) (string, string) {
 	params := url.Values{
 		"client_id":     {"98fc1b94f1e445cebcfe067a505598ba"},
 		"grant_type":    {"authorization_code"},
@@ -114,26 +130,26 @@ func getAccessToken(code string, verifier string) string {
 						   payload)
 	if err != nil {
 		log.Println(err)
-		return "error"
-	} else {
+		return "error", "error"
+	} 
 		defer resp.Body.Close()
 
-		// Read the response body
-		responseBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Println(err)
-			return "error"
-		}
-		// Print or store the access token (response handling)
-		var x types.TokenResp
-		err = json.Unmarshal(responseBody, &x)
-		if err != nil {
-			log.Println(err)
-			return "error"
-		}
-
-		return x.AccessToken
+	// Read the response body
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+		return "error","error"
 	}
+	// Print or store the access token (response handling)
+	var x types.TokenResp
+	err = json.Unmarshal(responseBody, &x)
+	if err != nil {
+		log.Println(err)
+		return "error", "error"
+	}
+
+	return x.AccessToken, x.RefreshToken
+	
 }
 
 func fetchTopItems(token string) *types.AnalyzerResponse{
@@ -196,7 +212,7 @@ func analyzerHandler(w http.ResponseWriter, r *http.Request){
 	err = json.Unmarshal(body, &x)
 	id := x.UserId
 	log.Println("analyzerHandler id:", id)
-	token, err := database.GetUserToken(id)
+	token, _, err := database.GetUserToken(id)
 	if err != nil{
 		log.Println("Analyzer - fetching token from DB:", err)
 		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
@@ -228,7 +244,7 @@ func playlistsHandler(w http.ResponseWriter, r *http.Request) {
 	id := x.UserId
 
 	// retrieve the user's token from the database
-	token, err := database.GetUserToken(id)
+	token, _, err := database.GetUserToken(id)
 	if err != nil {
 		log.Println("Error retreiving user token from DB", err)
 		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
@@ -274,7 +290,7 @@ func tracksHandler(w http.ResponseWriter, r *http.Request) {
 	playlist := x.PlaylistId
 
 	// retrieve the user's token from the database
-	token, err := database.GetUserToken(user)
+	token, _, err := database.GetUserToken(user)
 	if err != nil {
 		log.Println("Error retreiving user token from DB", err)
 		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
