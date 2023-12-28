@@ -8,6 +8,7 @@ const PlaylistPage = () => {
 
     const { userId, playlistId, playlistName } = useParams();
     const [tracks, setTracks] = useState<Playlist>();
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchTracks();
@@ -20,6 +21,7 @@ const PlaylistPage = () => {
             const dona = handleData(tracks);
             generateChart(dona);
             setTracks(tracks);
+            setLoading(false);
         }
     }
 
@@ -70,7 +72,11 @@ const PlaylistPage = () => {
         <div className='bg-gray-900'>
             <h1 className="text-white text-4xl  tracking-normal text-center mb-5">{playlistName}</h1>
             <header className="h-[800px] w-full flex items-center justify-center">
-                <canvas id="donutChart" className="my-4 mx-auto" width="400" height="400"></canvas>
+                {loading ? ( 
+                    <h1 className="text-white text-4xl  tracking-normal text-center mb-5">Loading...</h1>
+                ) : (
+                    <canvas id="donutChart" className="my-4 mx-auto" width="400" height="400"></canvas>
+                )}
             </header>
 
             <h1 className="text-white text-4xl  tracking-normal text-center mb-5">Tracks</h1>
