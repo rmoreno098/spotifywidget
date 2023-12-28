@@ -32,6 +32,11 @@ function DashboardPage() {
     event.preventDefault();
     navigate(`/playlist/${userId}/${playlistId}/${playlistName}`);
   }
+  
+	const analyzerClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    navigate(`/analyzer/${userId}`);
+  }
 
   const spotifyConnect = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -76,6 +81,12 @@ function DashboardPage() {
                       onClick={(event)=>spotifyConnect(event)} disabled={connected}
                     >
                       Connect
+                    </button>
+										<button
+                      className="relative shrink-0 box-border appearance-none text-green-500 bg-green-200 rounded text-center cursor-pointer w-auto self-center mr-auto mt-5 px-6 py-4"
+                      onClick={(event)=>analyzerClick(event)} disabled={connected}
+                    >
+                      Analyze Spotify
                     </button>
                   </div>
                 </div>
