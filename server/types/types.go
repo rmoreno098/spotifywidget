@@ -89,6 +89,9 @@ type Owner struct {
 }
 
 type FrontEndRequest struct {
+}
+
+type PlaylistResp struct {
 	UserId string `json:"user_id"`
 }
 

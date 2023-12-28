@@ -32,6 +32,7 @@ function DashboardPage() {
     event.preventDefault();
     navigate(`/playlist/${userId}/${playlistId}/${playlistName}`);
   }
+  
 	const analyzerClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     navigate(`/analyzer/${userId}`);
