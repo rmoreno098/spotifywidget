@@ -45,5 +45,4 @@ func main(){
 		log.Println("Query:", email, name, token)
 	}
 	log.Println("Query should be 'test@perrohq.com Louie Dee kjh3%$1212kl3lj5'")
-
 }

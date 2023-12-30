@@ -11,11 +11,10 @@ import (
 	"spotify-widget/server/types"
 	"strings"
 	"github.com/rs/cors"
-	"spotify-widget/server/database"
 )
 var verifier string
 
-func refreshToken(token string, id string) string{
+func refreshToken(token string, id string) string {
 	URL := "https://accounts.spotify.com/api/token"
 	req, err := http.NewRequest(http.MethodPost, URL, nil)
 	if err != nil{
@@ -41,7 +40,7 @@ func fetchProfile(token string) (string, string, error) {
 	if err != nil {
 		log.Println(resp)
 		return "", "", err
-	}else if resp.StatusCode == 401{
+	} else if resp.StatusCode == 401{
 		// Refresh token
 
 	}
@@ -92,13 +91,11 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	if access_token == "error" || access_token == "" {
 		log.Println("Fetching access token error")
 		http.Error(w, "Error fetching access token", 2)
-	token := getAccessToken(code, verifier)
-	if token == "error" {
-		log.Println("Authentication failed")
-		return
 	}
+
 	log.Println("Token:", access_token)
 
+	// fetch the user's id and display name
 	id, name, err := fetchProfile(access_token)
 	if err != nil{
 		log.Println("Error fetching profile:", err)
@@ -106,16 +103,9 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Name:", name)
 	log.Println("id:", id)
-	// store the user's id, name, and token into the database
-	err = database.StoreUserToken(id, name, access_token, refreshToken)
-	// fetch the user's id and display name
-	id, name, err := fetchProfile(token)
-	if err != nil {
-		log.Println(err)
-	}
 
 	// store the user's id, name, and token into the database
-	err = database.StoreUsrToken(id, name, token)
+	err = database.StoreUserToken(id, name, access_token, refreshToken)
 	if err != nil {
 		log.Println(err)
 		http.Redirect(w, r, "http://localhost:5173/", http.StatusNotFound)
@@ -128,7 +118,7 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAccessToken(code string, verifier string) (string, string) {
-	params := url.Values{
+	params := url.Values {
 		"client_id":     {"98fc1b94f1e445cebcfe067a505598ba"},
 		"grant_type":    {"authorization_code"},
 		"code":          {code},
@@ -161,7 +151,6 @@ func getAccessToken(code string, verifier string) (string, string) {
 	}
 
 	return x.AccessToken, x.RefreshToken
-	
 }
 
 func fetchTopItems(token string) *types.AnalyzerResponse{
@@ -238,130 +227,6 @@ func analyzerHandler(w http.ResponseWriter, r *http.Request){
 	result, err := json.Marshal(response)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(result)
-}
-
-func playlistsHandler(w http.ResponseWriter, r *http.Request) {
-	// retrieve the user's id from the request
-	body, err := io.ReadAll(r.Body)	// read the body of the request
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	var x types.FrontEndRequest	// create a variable of type PlaylistResp
-    err = json.Unmarshal(body, &x)	// store body into x
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	id := x.UserId
-
-	// retrieve the user's token from the database
-	token, _, err := database.GetUserToken(id)
-	if err != nil {
-		log.Println("Error retreiving user token from DB", err)
-		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
-		return
-	}
-	defer r.Body.Close()
-
-	// fetch the user's playlists
-	resp, err := fetchPlaylists(token)
-	if err != nil {
-		log.Println("Error fetching playlists from Spotify", err)
-		http.Error(w, "Error fetching playlists from Spotify", http.StatusInternalServerError)
-		return
-	}
-	defer resp.Body.Close()
-
-	// read the response body
-	rawJSON, err := io.ReadAll(resp.Body)
-    if err != nil {
-        http.Error(w, "Error reading Spotify response", http.StatusInternalServerError)
-        return
-    }
-
-	// write the response body to the client
-	w.Header().Set("Content-Type", "application/json")
-    w.Write(rawJSON)
-}
-
-func tracksHandler(w http.ResponseWriter, r *http.Request) {
-	// retrieve the playlist id from the request
-	body, err := io.ReadAll(r.Body)	// read the body of the request
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	var x types.TrackResp	// create a variable of type PlaylistResp
-    err = json.Unmarshal(body, &x)	// store body into x
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	user := x.UserId
-	playlist := x.PlaylistId
-
-	// retrieve the user's token from the database
-	token, _, err := database.GetUserToken(user)
-	if err != nil {
-		log.Println("Error retreiving user token from DB", err)
-		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
-		return
-	}
-	defer r.Body.Close()
-
-	// fetch the user's playlists
-	resp, err := fetchTracks(token, playlist)
-	if err != nil {
-		http.Error(w, "Error fetching tracks from Spotify", http.StatusInternalServerError)
-		return
-	}
-	defer resp.Body.Close()
-
-	// read the response body
-	rawJSON, err := io.ReadAll(resp.Body)
-	if err != nil {
-		http.Error(w, "Error reading Spotify response", http.StatusInternalServerError)
-		return
-	}
-
-	// write the response body to the client
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(rawJSON)
-}
-
-func fetchTracks(token string, id string) (*http.Response, error) {
-	url := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks", id)
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer " + token)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
-func fetchPlaylists(token string) (*http.Response, error) {
-	url := "https://api.spotify.com/v1/me/playlists"
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer " + token)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
 }
 
 func playlistsHandler(w http.ResponseWriter, r *http.Request) {

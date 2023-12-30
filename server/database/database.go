@@ -43,10 +43,6 @@ func StoreUserToken(id string, name string, access_token string, refresh_token s
 	if DB == nil {
 		return errors.New("DATABASE: DB is nil")
 	}
-func StoreUsrToken(id string, name string, token string) error {
-	if DB == nil {
-		return errors.New("DATABASE: DB is nil")
-	}
 
 	// check if user is already in the db
 	var count int
@@ -70,47 +66,36 @@ func StoreUsrToken(id string, name string, token string) error {
 			return err
 		}
 	}
+
 	log.Println("DATABASE: Successfully stored user access_token")
-	rows, err := DB.Query("SELECT * FROM users")
-	if err != nil {
-		log.Println("Database SELECT:", err)
-		return err
-	}
-	for rows.Next() {
-		var id, name, access_token, refresh_token string
-		if err := rows.Scan(&id, &name, &access_token, &refresh_token); err != nil {
-			log.Println("Database Store Printing Select:", err)
-		}
-		log.Printf("id: %s\n name: %s\n access_token: %s\n refresh_token:%s\n", id, name, access_token, refresh_token)
-	}
-		_, err := DB.Exec("UPDATE users SET token = ? WHERE id = ?", token, id)
-		if err != nil {
-			return err
-		}
-	} else {
-		_, err = DB.Exec("INSERT INTO users (id, name, token) VALUES (?, ?, ?)", id, name, token)
-		if err != nil {
-			return err
-		}
-	}
+
+	// rows, err := DB.Query("SELECT * FROM users")
+	// if err != nil {
+	// 	log.Println("Database SELECT:", err)
+	// 	return err
+	// }
+	// for rows.Next() {
+	// 	var id, name, access_token, refresh_token string
+	// 	if err := rows.Scan(&id, &name, &access_token, &refresh_token); err != nil {
+	// 		log.Println("Database Store Printing Select:", err)
+	// 	}
+	// 	log.Printf("id: %s\n name: %s\n access_token: %s\n refresh_token:%s\n", id, name, access_token, refresh_token)
+	// }
+
 	return nil
 }
 
 func UpdateUserToken(id string, token string) (string, error) {
-  
-func GetUsrToken(id string) (string, error) {
 	if DB == nil {
 		return "", errors.New("DATABASE: DB is nil")
 	}
 
 	_, err := DB.Exec("UPDATE users SET token = ? WHERE id = ?;", token, id)
-	var token string
-	err := DB.QueryRow("SELECT token FROM users WHERE id = ?", id).Scan(&token)
 	if err != nil {
 		return "", err
 	}
 
-	return "placeholder", nil
+	return token, nil
 }
 
 func GetUserToken(id string) (string, string, error){
@@ -125,5 +110,4 @@ func GetUserToken(id string) (string, string, error){
 	}
 
 	return access_token, refresh_token, nil
-	return token, nil
 }
