@@ -245,7 +245,7 @@ func playlistsHandler(w http.ResponseWriter, r *http.Request) {
 	id := x.UserId
 
 	// retrieve the user's token from the database
-	token, err := database.GetUsrToken(id)
+	token, _, err := database.GetUserToken(id)
 	if err != nil {
 		log.Println("Error retreiving user token from DB", err)
 		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
@@ -291,7 +291,7 @@ func tracksHandler(w http.ResponseWriter, r *http.Request) {
 	playlist := x.PlaylistId
 
 	// retrieve the user's token from the database
-	token, err := database.GetUsrToken(user)
+	token, _, err := database.GetUserToken(user)
 	if err != nil {
 		log.Println("Error retreiving user token from DB", err)
 		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)

@@ -57,7 +57,7 @@ function DashboardPage() {
   };
   
   return (
-    <form className="flex flex-col relative shrink-0 box-border justify-start items-start w-full bg-gray-900 p-9 max-md:mb-9 h-screen">
+    <form className="flex flex-col relative shrink-0 box-border justify-start items-start w-full bg-gray-900 p-9 max-md:mb-9">
       <header className="flex flex-col justify-start items-start w-full max-md:gap-[px]">
         <div className="flex flex-col max-w-full self-stretch w-auto max-md:w-auto max-md:self-stretch">
           <header className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
@@ -114,24 +114,24 @@ function DashboardPage() {
       </header>
 
       <section className="flex flex-col max-w-full self-stretch w-auto mt-6">
-        <header className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
+        <section className="flex flex-wrap -mx-5">
             {playlists?.items.map((playlist) => (
-              <div key={playlist.id} className="flex flex-col items-stretch w-3/12 max-md:w-full max-md:ml-0">
+              <div key={playlist.id} className="flex flex-col items-stretch w-1/4 px-5 mb-5">
                 <button onClick={(event)=>playlistClick(event, playlist.id, playlist.name)}>
-                  <img
-                    loading="lazy"
-                    key={playlist.id}
-                    src={playlist.images[0]?.url}
-                    className="aspect-square object-cover object-bottom w-full shrink-0 box-border border-black hover:border-green-500 overflow-hidden h-full m-auto rounded-lg max-md:my-6"
-                    alt={playlist.name}
-                  />
+                <img
+                  loading="lazy"
+                  key={playlist.id}
+                  src={playlist.images[0]?.url}
+                  className="aspect-square w-full h-full m-auto rounded-lg"
+                  alt={playlist.name}
+                />
                 </button>
                 <span className="text-white text-4xl tracking-normal text-center mt-2">
                   {playlist.name}
                 </span>
               </div>
             ))}
-        </header>
+        </section>
       </section>
     </form>
   );

@@ -43,7 +43,6 @@ func StoreUserToken(id string, name string, access_token string, refresh_token s
 	if DB == nil {
 		return errors.New("DATABASE: DB is nil")
 	}
-
 	// check if user is already in the db
 	var count int
 	err := DB.QueryRow("SELECT COUNT(*) FROM users WHERE id = ?", id).Scan(&count)
@@ -66,21 +65,19 @@ func StoreUserToken(id string, name string, access_token string, refresh_token s
 			return err
 		}
 	}
-
 	log.Println("DATABASE: Successfully stored user access_token")
-
-	// rows, err := DB.Query("SELECT * FROM users")
-	// if err != nil {
-	// 	log.Println("Database SELECT:", err)
-	// 	return err
-	// }
-	// for rows.Next() {
-	// 	var id, name, access_token, refresh_token string
-	// 	if err := rows.Scan(&id, &name, &access_token, &refresh_token); err != nil {
-	// 		log.Println("Database Store Printing Select:", err)
-	// 	}
-	// 	log.Printf("id: %s\n name: %s\n access_token: %s\n refresh_token:%s\n", id, name, access_token, refresh_token)
-	// }
+	rows, err := DB.Query("SELECT * FROM users")
+	if err != nil {
+		log.Println("Database SELECT:", err)
+		return err
+	}
+	for rows.Next() {
+		var id, name, access_token, refresh_token string
+		if err := rows.Scan(&id, &name, &access_token, &refresh_token); err != nil {
+			log.Println("Database Store Printing Select:", err)
+		}
+		log.Printf("id: %s\n name: %s\n access_token: %s\n refresh_token:%s\n", id, name, access_token, refresh_token)
+	}
 
 	return nil
 }
@@ -95,7 +92,7 @@ func UpdateUserToken(id string, token string) (string, error) {
 		return "", err
 	}
 
-	return token, nil
+	return "placeholder", nil
 }
 
 func GetUserToken(id string) (string, string, error){
