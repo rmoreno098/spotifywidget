@@ -120,8 +120,7 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 
 func emptyHandler(w http.ResponseWriter, r *http.Request) {
 
-	// log.Println("Token:", access_token)
-	log.Println("I'm empty")
+	log.Println("website accessed with no handler")
 	return;
 }
 
