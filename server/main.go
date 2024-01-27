@@ -117,6 +117,14 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
+
+func emptyHandler(w http.ResponseWriter, r *http.Request) {
+
+	// log.Println("Token:", access_token)
+	log.Println("I'm empty")
+	return;
+}
+
 func getAccessToken(code string, verifier string) (string, string) {
 	params := url.Values {
 		"client_id":     {"98fc1b94f1e445cebcfe067a505598ba"},
@@ -383,6 +391,10 @@ func main() {
 
 	http.HandleFunc("/analyzer", func(w http.ResponseWriter, r *http.Request) {
 		corsHandler.Handler(http.HandlerFunc(analyzerHandler)).ServeHTTP(w, r)
+	})
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		corsHandler.Handler(http.HandlerFunc(emptyHandler)).ServeHTTP(w, r)
 	})
 
 	http.ListenAndServe(":8080", nil)
