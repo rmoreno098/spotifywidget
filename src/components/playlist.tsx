@@ -80,7 +80,7 @@ const PlaylistPage = () => {
 
     return (
         <div className='bg-gray-900'>
-            <h1 className="text-white text-4xl  tracking-normal text-center mb-5">{playlistName}</h1>
+            <h1 className="text-white font-bold text-4xl bold tracking-normal text-center mb-5">{playlistName}</h1>
             <header className="h-[800px] w-full flex items-center justify-center">
                 {loading ? ( 
                     <h1 className="text-white text-4xl tracking-normal text-center mb-5">Loading...</h1>

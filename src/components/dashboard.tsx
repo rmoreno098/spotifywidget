@@ -57,10 +57,10 @@ function DashboardPage() {
   };
   
   return (
-    <form className="flex flex-col relative shrink-0 box-border justify-start items-start w-full bg-gray-900 p-9 max-md:mb-9">
-      <header className="flex flex-col justify-start items-start w-full max-md:gap-[px]">
+    <form className="flex flex-col justify-start items-start w-full bg-gray-900 p-9 max-md:mb-9 min-h-screen">
+      <div className="flex flex-col justify-start items-start w-full max-md:gap-[px]">
         <div className="flex flex-col max-w-full self-stretch w-auto max-md:w-auto max-md:self-stretch">
-          <header className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
+          <div className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
             <div className="flex flex-col items-stretch w-6/12 max-md:w-full max-md:ml-0">
               {connected ? (
                 <div className="flex flex-col max-w-full justify-center self-stretch w-full items-start h-full mx-auto max-md:gap-9 max-md:h-auto max-md:grow-0 max-md:mb-9">
@@ -95,9 +95,9 @@ function DashboardPage() {
             </div>
 
             <div className="flex flex-col items-stretch w-6/12 ml-5 max-md:w-full max-md:ml-0">
-              <header className="flex flex-row relative shrink-0 box-border w-full justify-between">
+              <div className="flex flex-row relative shrink-0 box-border w-full justify-between">
                 <div className="flex flex-col relative shrink-0 box-border w-full">
-                  <header className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
+                  <div className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
                     <div className="flex flex-col items-stretch w-full max-md:w-full max-md:ml-0">
                         {connected ? ( null ) : (
                           <span className="text-white text-4xl tracking-normal text-left mt-2">
@@ -105,21 +105,21 @@ function DashboardPage() {
                           </span>
                         )}
                     </div>
-                  </header>
+                  </div>
                 </div>
-              </header>
+              </div>
             </div>
-          </header>
+          </div>
         </div>
-      </header>
+      </div>
 
-      <section className="flex flex-col max-w-full self-stretch w-auto mt-6">
-        <section className="flex flex-wrap -mx-5">
+      <div className="flex flex-col items-stretch w-full mt-6">
+        <div className="flex flex-wrap -mx-5">
             {playlists?.items.map((playlist) => (
               <div key={playlist.id} className="flex flex-col items-stretch w-1/4 px-5 mb-5">
                 <button onClick={(event)=>playlistClick(event, playlist.id, playlist.name)}>
                 <img
-                  loading="lazy"
+                  loading="eager"
                   key={playlist.id}
                   src={playlist.images[0]?.url}
                   className="aspect-square w-full h-full m-auto rounded-lg"
@@ -131,8 +131,8 @@ function DashboardPage() {
                 </span>
               </div>
             ))}
-        </section>
-      </section>
+        </div>
+      </div>
     </form>
   );
 }
