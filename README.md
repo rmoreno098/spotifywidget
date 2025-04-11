@@ -10,7 +10,6 @@ This application allows users to authenticate with Spotify, view their playlists
 
 ## Technologies Used
 
-- Bun
 - React
 - TypeScript
 - Go
