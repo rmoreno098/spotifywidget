@@ -1,2 +1,4 @@
 node_modules
-spotifywidget.db
+*.db
+.idea
+.DS_Store
