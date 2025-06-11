@@ -1,139 +1,88 @@
-import { useEffect, useState } from "react";
+// src/pages/Dashboard.tsx
 import { useNavigate } from "react-router-dom";
-import { UserProfile, Playlist } from "../models/types";
-import { getPlaylists } from "../api/auth";
+
+import { useAuth } from "../hooks/useAuth";
+import { dashboardItems } from "../assets/DashboardItems";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const urlParams = new URLSearchParams(window.location.search);
 
-  const userId = urlParams.get('userId');
-  const userName = urlParams.get('name');
-  const [profile, setProfile] = useState<UserProfile["display_name"]>();
-  const [playlists, setPlaylists] = useState<Playlist>();
-  const [connected, setConnected] = useState(false);
-
-  useEffect(() => {
-    if (userName !== null) {
-      if(sessionStorage.getItem(userName)) {
-        const userPlaylists = sessionStorage.getItem(userName);
-        if (userPlaylists !== null ) {
-          const parsed = JSON.parse(userPlaylists);
-          console.log(parsed);
-          setProfile(userName);
-          setPlaylists(parsed);
-          setConnected(true);
-        }
-      }
-    }
-  }, []);
-
-  const playlistClick = async (event: React.MouseEvent<HTMLButtonElement>, playlistId: string, playlistName: string) => {
-    event.preventDefault();
-    navigate(`/playlist/${userId}/${playlistId}/${playlistName}`);
-  }
-  
-	const analyzerClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    navigate(`/analyzer/${userId}`);
+  // Get authenticated user
+  const { user } = useAuth();
+  if (!user) {
+    navigate("/");
+    return null;
   }
 
-  const spotifyConnect = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    if (userId === null || userName === null) {
-      console.log("Error getting user info")
-      return;
-    } 
-    // get user's playlists from Spotify
-    const userPlaylists = await getPlaylists(userId);
-    if (userPlaylists === null ) {
-      console.log("Error getting user playlists")
-      return;
-    }
-    setProfile(userName);
-    setPlaylists(userPlaylists);
-    setConnected(true);
-    sessionStorage.setItem(userName, JSON.stringify(userPlaylists));
+  const handleItemClick = (itemId: string) => {
+    console.log(`Navigating to ${itemId}`);
   };
-  
+
   return (
-    <form className="flex flex-col justify-start items-start w-full bg-gray-900 p-9 max-md:mb-9 min-h-screen">
-      <div className="flex flex-col justify-start items-start w-full max-md:gap-[px]">
-        <div className="flex flex-col max-w-full self-stretch w-auto max-md:w-auto max-md:self-stretch">
-          <div className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
-            <div className="flex flex-col items-stretch w-6/12 max-md:w-full max-md:ml-0">
-              {connected ? (
-                <div className="flex flex-col max-w-full justify-center self-stretch w-full items-start h-full mx-auto max-md:gap-9 max-md:h-auto max-md:grow-0 max-md:mb-9">
-                  <div className="flex flex-col justify-center items-start w-auto self-stretch">
-                    <h1 className="max-w-[400px] text-white text-4xl tracking-normal text-left mt-2">
-                    Hello {profile} 👋
-                    </h1>                    
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col max-w-full justify-center self-stretch w-full items-start h-full mx-auto max-md:gap-9 max-md:h-auto max-md:grow-0 max-md:mb-9">
-                  <div className="flex flex-col justify-center items-start w-auto self-stretch">
-                    <h1 className="max-w-[350px] text-white text-4xl tracking-normal text-left mt-2">
-                      Connect to Spotify
-                    </h1>
-                    <button
-                      className="relative shrink-0 box-border appearance-none text-green-500 bg-green-200 rounded text-center cursor-pointer w-auto self-center mr-auto mt-5 px-6 py-4"
-                      onClick={(event)=>spotifyConnect(event)} disabled={connected}
-                    >
-                      Connect
-                    </button>
-										<button
-                      className="relative shrink-0 box-border appearance-none text-green-500 bg-green-200 rounded text-center cursor-pointer w-auto self-center mr-auto mt-5 px-6 py-4"
-                      onClick={(event)=>analyzerClick(event)} disabled={connected}
-                    >
-                      Analyze Spotify
-                    </button>
-                  </div>
-                </div>
-              )
-             }
-            </div>
-
-            <div className="flex flex-col items-stretch w-6/12 ml-5 max-md:w-full max-md:ml-0">
-              <div className="flex flex-row relative shrink-0 box-border w-full justify-between">
-                <div className="flex flex-col relative shrink-0 box-border w-full">
-                  <div className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
-                    <div className="flex flex-col items-stretch w-full max-md:w-full max-md:ml-0">
-                        {connected ? ( null ) : (
-                          <span className="text-white text-4xl tracking-normal text-left mt-2">
-                            Connect to see your playlists 🎶
-                          </span>
-                        )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-4 md:p-8">
+      {/* Header Section */}
+      <div className="max-w-7xl mx-auto mb-8 md:mb-12">
+        <div className="text-center md:text-left">
+          <h1 className="text-3xl md:text-5xl font-bold mb-2">
+            Hello, {user.name}
+          </h1>
+          <p className="text-gray-300 text-lg md:text-xl">
+            What would you like to explore today?
+          </p>
         </div>
       </div>
 
-      <div className="flex flex-col items-stretch w-full mt-6">
-        <div className="flex flex-wrap -mx-5">
-            {playlists?.items.map((playlist) => (
-              <div key={playlist.id} className="flex flex-col items-stretch w-1/4 px-5 mb-5">
-                <button onClick={(event)=>playlistClick(event, playlist.id, playlist.name)}>
-                <img
-                  loading="eager"
-                  key={playlist.id}
-                  src={playlist.images[0]?.url}
-                  className="aspect-square w-full h-full m-auto rounded-lg"
-                  alt={playlist.name}
+      {/* Grid Section */}
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
+          {dashboardItems.map((item) => {
+            const IconComponent = item.icon;
+            return (
+              <div
+                key={item.id}
+                onClick={() => handleItemClick(item.id)}
+                className="group relative overflow-hidden rounded-2xl cursor-pointer transform transition-all duration-300 hover:scale-105 hover:-translate-y-2"
+              >
+                {/* Background Gradient */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${item.gradient} group-hover:${item.hoverGradient} transition-all duration-300`}
                 />
-                </button>
-                <span className="text-white text-4xl tracking-normal text-center mt-2">
-                  {playlist.name}
-                </span>
+
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all duration-300" />
+
+                {/* Content */}
+                <div className="relative p-8 md:p-10 lg:p-12 h-48 md:h-56 lg:h-64 flex flex-col justify-between">
+                  {/* Icon */}
+                  <div className="flex justify-between items-start">
+                    <IconComponent
+                      size={48}
+                      className="text-white drop-shadow-lg group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="w-3 h-3 rounded-full bg-white bg-opacity-30 group-hover:bg-opacity-50 transition-all duration-300" />
+                  </div>
+
+                  {/* Text Content */}
+                  <div className="space-y-2">
+                    <h2 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
+                      {item.title}
+                    </h2>
+                    <p className="text-white text-opacity-90 text-sm md:text-base font-medium">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Hover Effect Ring */}
+                <div className="absolute inset-0 rounded-2xl ring-2 ring-white ring-opacity-0 group-hover:ring-opacity-20 transition-all duration-300" />
               </div>
-            ))}
+            );
+          })}
         </div>
       </div>
-    </form>
+
+      {/* Footer Spacer */}
+      <div className="h-8 md:h-16" />
+    </div>
   );
 }
-
