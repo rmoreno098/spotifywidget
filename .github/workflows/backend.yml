@@ -13,7 +13,7 @@ jobs:
       run:
         working-directory: ./backend
     steps:
-      - uses: actions/checkout@4
+      - uses: actions/checkout@v4
       - name: "Setup Go ${{ matrix.go-version }}"
         uses: actions/setup-go@v4
         with:
