@@ -2,7 +2,7 @@ import "../styles.css";
 import { redirectToAuthCodeFlow } from "../api/auth";
 import loginImage from "../images/welcome_page.jpeg";
 
-function WelcomePage() {
+export default function HomePage() {
     const clientId = "98fc1b94f1e445cebcfe067a505598ba";
 
     async function spotifyConnect(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
@@ -36,4 +36,3 @@ function WelcomePage() {
   );
 }
 
-export default WelcomePage;

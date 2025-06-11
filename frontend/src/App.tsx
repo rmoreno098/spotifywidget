@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import WelcomePage from './components/welcome';
-import PlaylistPage from './components/playlist';
-import DashboardPage from './components/dashboard';
+import HomePage from './pages/Home';
+import DashboardPage from './pages/dashboard';
+import PlaylistPage from './pages/playlist';
 
 function App() {
   return (
@@ -9,7 +9,7 @@ function App() {
         <Routes>
           <Route
             path="/" 
-            element={ <WelcomePage />} 
+            element={ <HomePage />} 
           />
           <Route 
             path="/dashboard" 
