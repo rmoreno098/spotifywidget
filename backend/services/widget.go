@@ -21,28 +21,19 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// exchange the code for an access token
-	access_token, refreshToken := accessToken(code)
-	if access_token == "error" || access_token == "" {
+	access_token, _, err := accessToken(code)
+	if err != nil {
 		slog.Error("Fetching access token error")
 		http.Error(w, "Error fetching access token", 2)
 	}
 
 	// fetch the user's id and display name
-	id, name, err := profile(access_token)
+	user, err := profile(*access_token)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error fetching profile: %s", err.Error()))
 	}
-
-	// store the user's id, name, and token into the database
-	err = database.StoreUserToken(id, name, access_token, refreshToken)
-	if err != nil {
-		slog.Error(err.Error())
-		http.Redirect(w, r, "http://localhost:5173/", http.StatusNotFound)
-		return
-	}
-
 	// redirect the user to the dashboard if the token was successfully stored
-	redirectURL := fmt.Sprintf("http://localhost:5173/dashboard?userId=%s&name=%s", url.QueryEscape(id), url.QueryEscape(name))
+	redirectURL := fmt.Sprintf("http://localhost:5173/dashboard?userId=%s&name=%s", url.QueryEscape(user.ID), url.QueryEscape(user.DisplayName))
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 

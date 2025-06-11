@@ -28,7 +28,7 @@ func setupRouter() (*mux.Router, error) {
 			return
 		}
 	}).Methods(http.MethodGet)
-	r.HandleFunc("/v1/tracks", services.Tracks).Methods(http.MethodGet)
+	r.HandleFunc("/api/v1/tracks", services.Tracks).Methods(http.MethodGet)
 
 	return r, nil
 }
