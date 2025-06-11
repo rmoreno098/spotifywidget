@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { UserProfile, Playlist } from "../models/types";
 import { getPlaylists } from "../api/auth";
 
-function DashboardPage() {
+export default function DashboardPage() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
 
@@ -137,4 +137,3 @@ function DashboardPage() {
   );
 }
 
-export default DashboardPage;

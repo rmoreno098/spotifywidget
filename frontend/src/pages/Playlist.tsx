@@ -4,7 +4,7 @@ import { Playlist } from '../models/types';
 import { getTracks } from '../api/auth';
 import Chart from 'chart.js/auto';
 
-const PlaylistPage = () => {
+export default function PlaylistPage() {
 
     const { userId, playlistId, playlistName } = useParams();
     const [tracks, setTracks] = useState<Playlist>();
@@ -113,5 +113,3 @@ const PlaylistPage = () => {
         </div>
     );
 };
-
-export default PlaylistPage;
