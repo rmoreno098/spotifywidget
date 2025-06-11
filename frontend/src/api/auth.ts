@@ -1,70 +1,74 @@
 export async function redirectToAuthCodeFlow(clientId: string) {
-    const verifier = generateCodeVerifier(128);
-    const challenge = await generateCodeChallenge(verifier);
-    
-    // send verifier to server
-    const result = await fetch('http://localhost:8080/verifier', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ verifier: verifier }),
-    });
+  const verifier = generateCodeVerifier(128);
+  const challenge = await generateCodeChallenge(verifier);
 
-    // if server failed to store verifier, abort
-    if (result.status !== 200) {
-        console.error("Failed to store verifier");
-        return;
-    }
+  // send verifier to server
+  const result = await fetch("http://localhost:8080/verifier", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ verifier: verifier }),
+  });
 
-    // redirect to spotify auth page with challenge
-    // will redirect to callback url (server)
-    const params = new URLSearchParams();
-    params.append("client_id", clientId);
-    params.append("response_type", "code");
-    params.append("redirect_uri", "http://localhost:8080/callback");
-    params.append("scope", "user-read-private user-read-email user-top-read playlist-read-private");
-    params.append("code_challenge_method", "S256");
-    params.append("code_challenge", challenge);
+  // if server failed to store verifier, abort
+  if (result.status !== 200) {
+    console.error("Failed to store verifier");
+    return;
+  }
 
-    document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
+  // redirect to spotify auth page with challenge
+  // will redirect to callback url (server)
+  const params = new URLSearchParams();
+  params.append("client_id", clientId);
+  params.append("response_type", "code");
+  params.append("redirect_uri", "http://localhost:8080/callback");
+  params.append(
+    "scope",
+    "user-read-private user-read-email user-top-read playlist-read-private"
+  );
+  params.append("code_challenge_method", "S256");
+  params.append("code_challenge", challenge);
+
+  document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
 function generateCodeVerifier(length: number) {
-    let text = '';
-    let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let text = "";
+  let possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    for (let i = 0; i < length; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
+  for (let i = 0; i < length; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
 }
 
 async function generateCodeChallenge(codeVerifier: string) {
-    const data = new TextEncoder().encode(codeVerifier);
-    const digest = await window.crypto.subtle.digest('SHA-256', data);
-    return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)]))
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
+  const data = new TextEncoder().encode(codeVerifier);
+  const digest = await window.crypto.subtle.digest("SHA-256", data);
+  return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)]))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 export async function getPlaylists(userId: string) {
-    const result = await fetch('http://localhost:8080/getPlaylists', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId }),
-    });
+  const result = await fetch("http://localhost:8080/getPlaylists", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+  });
 
-    const playlists = await result.json();
-    return playlists;
+  const playlists = await result.json();
+  return playlists;
 }
 
 export async function getTracks(userId: string, playlistId: string) {
-    const result = await fetch('http://localhost:8080/getTracks', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, playlist_id: playlistId }),
-    });
+  const result = await fetch("http://localhost:8080/getTracks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, playlist_id: playlistId }),
+  });
 
-    const tracks = await result.json();
-    return tracks;
+  const tracks = await result.json();
+  return tracks;
 }

@@ -1,38 +1,61 @@
-import "../styles.css";
+// src/pages/Home.tsx
+import { useNavigate } from "react-router-dom";
+
+import loginImage from "../assets/Home.jpeg";
+import { useAuth } from "../hooks/useAuth";
 import { redirectToAuthCodeFlow } from "../api/auth";
-import loginImage from "../images/welcome_page.jpeg";
+
+const { VITE_SPOTIFY_CLIENT_ID } = import.meta.env;
 
 export default function HomePage() {
-    const clientId = "98fc1b94f1e445cebcfe067a505598ba";
+  const clientId = VITE_SPOTIFY_CLIENT_ID;
+  const navigate = useNavigate();
 
-    async function spotifyConnect(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-      event.preventDefault();
-      redirectToAuthCodeFlow(clientId);
+  // Check if the user is already authenticated
+  const {isAuthenticated} = useAuth();
+  if (isAuthenticated) {
+    navigate("/dashboard");
+    return null;
+  }
+
+  async function spotifyConnect() {
+    try {
+      await redirectToAuthCodeFlow(clientId);
+    } catch (error) {
+      console.error("Failed to redirect to Spotify auth flow:", error);
+      alert(
+        "An error occurred while trying to connect to Spotify. Please try again."
+      );
     }
-    
-    return (
-    <div className="bg-gray-900 text-white h-screen">
-      <section className="gap-5 flex max-md:flex-col max-md:items-stretch max-md:gap-0">
-        <div className="flex flex-col items-stretch w-[55%] max-md:w-full max-md:ml-0 h-screen">
-          <img
-            loading="lazy"
-            src={loginImage}
-            alt="Spotify Welcome Page Image"
-            className="object-cover w-full h-full"
-          />
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white flex">
+      {/* Image Section */}
+      <div className="hidden md:flex md:w-3/5 lg:w-1/2">
+        <img
+          loading="lazy"
+          src={loginImage}
+          alt="Spotify Welcome Page"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Content Section */}
+      <div className="flex-1 flex items-center justify-center p-8 md:w-2/5 lg:w-1/2">
+        <div className="w-full max-w-md text-center space-y-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+            Connect to Spotify
+          </h1>
+
+          <button
+            onClick={spotifyConnect}
+            className="w-full max-w-xs mx-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg text-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+          >
+            Get Started
+          </button>
         </div>
-        <div className="flex flex-col items-stretch w-[45%] ml-5 max-md:w-full max-md:ml-0">
-          <div className="flex flex-col items-center my-auto px-5 max-md:mt-10 justify-center">
-            <h1 className="text-4xl font-bold leading-10 tracking-tighter">
-              Connect To Spotfiy Like You Never Have Before
-            </h1>
-            <button className="text-green-500 bg-green-200 px-4 py-2 rounded-md text-xl mt-6 max-w-xs" onClick={(event) => spotifyConnect(event)}>
-              Get Started
-            </button>
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }
-

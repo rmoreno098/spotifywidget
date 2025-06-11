@@ -15,13 +15,13 @@ export interface UserProfile {
   type: string;
   uri: string;
 }
-  
+
 export interface Image {
   url: string;
   height: number;
   width: number;
 }
-  
+
 export interface Playlist {
   href: string;
   items: Item[];
@@ -31,7 +31,7 @@ export interface Playlist {
   previous: string;
   total: number;
 }
-  
+
 export interface Item {
   collaborative: boolean;
   description: string;
