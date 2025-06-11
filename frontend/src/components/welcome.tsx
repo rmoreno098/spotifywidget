@@ -1,5 +1,5 @@
 import "../styles.css";
-import { redirectToAuthCodeFlow } from "./auth";
+import { redirectToAuthCodeFlow } from "../api/auth";
 import loginImage from "../images/welcome_page.jpeg";
 
 function WelcomePage() {

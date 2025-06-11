@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserProfile, Playlist } from "./types";
-import { getPlaylists } from "./auth";
+import { UserProfile, Playlist } from "../models/types";
+import { getPlaylists } from "../api/auth";
 
 function DashboardPage() {
   const navigate = useNavigate();
