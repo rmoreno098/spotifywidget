@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"spotify-widget/backend/models"
+	"spotify-widget-v2/models"
 	"strings"
 )
 
@@ -75,8 +75,25 @@ func profile(token string) (*models.UserProfile, error) {
 	return &user, nil
 }
 
-func tracks(token string, id string) (*http.Response, error) {
-	url := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks", id)
+func tracks(token string, playlistID string) (*http.Response, error) {
+	url := fmt.Sprintf("https://api.spotify.com/v1/playlists/%s/tracks", playlistID)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func playlists(token string) (*http.Response, error) {
+	url := "https://api.spotify.com/v1/me/playlists"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err

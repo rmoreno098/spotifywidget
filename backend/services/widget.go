@@ -7,8 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"spotify-widget/server/database"
-	"spotify-widget/server/types"
+	"spotify-widget-v2/models"
 )
 
 func Callback(w http.ResponseWriter, r *http.Request) {
@@ -38,32 +37,20 @@ func Callback(w http.ResponseWriter, r *http.Request) {
 }
 
 func Tracks(w http.ResponseWriter, r *http.Request) {
-	// retrieve the playlist id from the request
-	body, err := io.ReadAll(r.Body) // read the body of the request
+	token := validateAccessToken(r)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	var x types.TrackResp          // create a variable of type PlaylistResp
-	err = json.Unmarshal(body, &x) // store body into x
+	var x models.Playlists
+	err = json.Unmarshal(body, &x)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	user := x.UserId
-	playlist := x.PlaylistId
-
-	// retrieve the user's token from the database
-	token, _, err := database.GetUserToken(user)
-	if err != nil {
-		slog.Error(fmt.Sprintf("Error retreiving user token from DB: %s", err.Error()))
-		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
-		return
-	}
-	defer r.Body.Close()
-
 	// fetch the user's playlists
-	resp, err := tracks(token, playlist)
+	resp, err := tracks(token, "") // TODO
 	if err != nil {
 		http.Error(w, "Error fetching tracks from Spotify", http.StatusInternalServerError)
 		return
@@ -80,4 +67,54 @@ func Tracks(w http.ResponseWriter, r *http.Request) {
 	// write the response body to the client
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(rawJSON)
+	slog.Info(fmt.Sprintf("%q", r.Body))
+}
+
+func Playlists(w http.ResponseWriter, r *http.Request) {
+	token := validateAccessToken(r)
+	if token == "" {
+		slog.Error(fmt.Sprintf("Access token not set in the request headers"))
+		http.Error(w, "Access token was not set", http.StatusBadRequest)
+	}
+	// retrieve the user's id from the request
+	body, err := io.ReadAll(r.Body) // read the body of the request
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+	var x models.Playlists         // create a variable of type PlaylistResp
+	err = json.Unmarshal(body, &x) // store body into x
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	// fetch the user's playlists
+	resp, err := playlists(token)
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error fetching playlists from Spotify: ", err.Error()))
+		http.Error(w, "Error fetching playlists from Spotify", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// read the response body
+	rawJSON, err := io.ReadAll(resp.Body)
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error parsing Spotify GET playlist response body: %s", err.Error()))
+		http.Error(w, "Error reading Spotify response", http.StatusInternalServerError)
+		return
+	}
+
+	// write the response body to the client
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(rawJSON)
+
+	slog.Info(fmt.Sprintf("%q", r.Body))
+}
+
+func validateAccessToken(r *http.Request) string {
+	return r.Header.Get("spotify-access-token")
 }

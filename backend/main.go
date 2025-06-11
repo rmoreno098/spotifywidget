@@ -3,8 +3,8 @@ package main
 import (
 	"log/slog"
 	"net/http"
-	"spotify-widget/backend/config"
-	"spotify-widget/backend/routes"
+	"spotify-widget-v2/config"
+	"spotify-widget-v2/routes"
 )
 
 func main() {

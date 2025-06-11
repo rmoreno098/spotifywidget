@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"spotify-widget/backend/services"
+	"spotify-widget-v2/services"
 
 	"github.com/gorilla/mux"
 )
