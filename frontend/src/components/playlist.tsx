@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Playlist } from './types';
-import { getTracks } from './auth';
+import { Playlist } from '../models/types';
+import { getTracks } from '../api/auth';
 import Chart from 'chart.js/auto';
 
 const PlaylistPage = () => {
