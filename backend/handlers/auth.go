@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 )
@@ -29,9 +29,52 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error fetching profile", 2)
 		return
 	}
-	slog.Info("Successfully fetched user profile", "user", user)
+
+	jwt, err := h.JWT.GenerateToken(user)
+	if err != nil {
+		slog.Error("Error generating token", "error", err)
+		http.Error(w, "Error generating token", 2)
+	}
+
+	cookie := &http.Cookie{
+		Name:     "auth_token",
+		Value:    jwt,
+		HttpOnly: true,
+		Path:     "/",
+	}
+	http.SetCookie(w, cookie)
 
 	// Redirect user to dashboard
-	redirectURL := fmt.Sprintf("http://localhost:3000/dashboard")
-	http.Redirect(w, r, redirectURL, http.StatusFound)
+	http.Redirect(w, r, "http://localhost:3000/dashboard", http.StatusFound)
+}
+
+func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	cookie, err := r.Cookie("auth_token")
+	if err != nil {
+		slog.Error("Cookie not found", "error", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	tokenStr := cookie.Value
+	claims, err := h.JWT.ParseToken(tokenStr)
+	if err != nil {
+		slog.Error("Error parsing token", "error", err, "token", tokenStr)
+		http.Error(w, "Error parsing token", http.StatusUnauthorized)
+		return
+	}
+
+	user := map[string]string{
+		"id":    claims.Sub,
+		"name":  claims.Name,
+		"email": claims.Email,
+	}
+
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		slog.Error("Error encoding user", "error", err)
+		http.Error(w, "Error encoding user", http.StatusInternalServerError)
+	}
 }

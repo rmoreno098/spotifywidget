@@ -14,7 +14,7 @@ func main() {
 	cfg := config.GetConfiguration()
 
 	spotify := services.NewSpotifyService(cfg.SpotifyClientId, cfg.SpotifyClientSecret, cfg.SpotifyRedirectUri)
-	jwt := services.NewJwtService()
+	jwt := services.NewJwtService(cfg.JWTSecret)
 
 	h := &handlers.Handler{
 		Spotify: spotify, JWT: jwt,

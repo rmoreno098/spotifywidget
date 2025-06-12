@@ -38,6 +38,7 @@ func setupRouter(h *handlers.Handler) (*mux.Router, error) {
 	r.HandleFunc("/api/v1/callback", h.Callback).Methods(http.MethodGet, http.MethodPost)
 	r.HandleFunc("/api/v1/tracks", h.PlaylistTracks).Methods(http.MethodGet)
 	r.HandleFunc("/api/v1/playlists", h.Playlists).Methods(http.MethodGet)
+	r.HandleFunc("/api/v1/me", h.Me).Methods(http.MethodGet)
 
 	return r, nil
 }

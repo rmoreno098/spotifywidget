@@ -11,6 +11,7 @@ type Configuration struct {
 	SpotifyClientId     string
 	SpotifyClientSecret string
 	SpotifyRedirectUri  string
+	JWTSecret           string
 }
 
 func getEnv(key string, fallback string) string {
@@ -32,6 +33,7 @@ func buildConfig() *Configuration {
 		SpotifyClientId:     getEnv("SPOTIFY_CLIENT_ID", ""),
 		SpotifyClientSecret: getEnv("SPOTIFY_CLIENT_SECRET", ""),
 		SpotifyRedirectUri:  getEnv("SPOTIFY_REDIRECT_URI", ""),
+		JWTSecret:           getEnv("JWT_SECRET", ""),
 	}
 }
 
