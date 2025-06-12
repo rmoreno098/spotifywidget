@@ -11,23 +11,23 @@ import (
 )
 
 type SpotifyService struct {
-	ClientID     string
-	ClientSecret string
-	RedirectURI  string
+	clientID     string
+	clientSecret string
+	redirectURI  string
 }
 
 func NewSpotifyService(clientID string, clientSecret string, redirectURI string) *SpotifyService {
 	return &SpotifyService{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		RedirectURI:  redirectURI,
+		clientID:     clientID,
+		clientSecret: clientSecret,
+		redirectURI:  redirectURI,
 	}
 }
 
 func (s *SpotifyService) GenerateTokens(code string) (*models.Token, error) {
 	params := url.Values{
 		"code":         {code},
-		"redirect_uri": {s.RedirectURI},
+		"redirect_uri": {s.redirectURI},
 		"grant_type":   {"authorization_code"},
 	}
 	payload := strings.NewReader(params.Encode())
@@ -38,7 +38,7 @@ func (s *SpotifyService) GenerateTokens(code string) (*models.Token, error) {
 	}
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	auth := s.ClientID + ":" + s.ClientSecret
+	auth := s.clientID + ":" + s.clientSecret
 	encoded := base64.StdEncoding.EncodeToString([]byte(auth))
 	r.Header.Add("Authorization", "Basic "+encoded)
 
