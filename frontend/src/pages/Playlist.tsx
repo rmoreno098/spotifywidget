@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Chart from "chart.js/auto";
 
 import type { Playlist } from "../models/types";
-import { getTracks } from "../api/auth";
+import { getTracks } from "../api/Tracks";
 
 export default function PlaylistPage() {
   const { userId, playlistId, playlistName } = useParams();
