@@ -1,28 +1,37 @@
 package config
 
 import (
+	"github.com/joho/godotenv"
 	"os"
 	"sync"
 )
 
 type Configuration struct {
-	Port                  string
-	Spotify_client_ID     string
-	Spotify_client_secret string
+	Port                string
+	SpotifyClientId     string
+	SpotifyClientSecret string
+	SpotifyRedirectUri  string
 }
 
 func getEnv(key string, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
+
+	if fallback == "" {
+		panic("Environment variable " + key + " not defined")
+	}
+
 	return fallback
 }
 
 func buildConfig() *Configuration {
+	_ = godotenv.Load()
 	return &Configuration{
-		Port:                  getEnv("PORT", "3000"),
-		Spotify_client_ID:     getEnv("SPOTIFY_CLIENT_ID", ""),
-		Spotify_client_secret: getEnv("SPOTIFY_CLIENT_SECRET", ""),
+		Port:                getEnv("PORT", "3000"),
+		SpotifyClientId:     getEnv("SPOTIFY_CLIENT_ID", ""),
+		SpotifyClientSecret: getEnv("SPOTIFY_CLIENT_SECRET", ""),
+		SpotifyRedirectUri:  getEnv("SPOTIFY_REDIRECT_URI", ""),
 	}
 }
 

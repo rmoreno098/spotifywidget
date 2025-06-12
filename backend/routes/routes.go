@@ -2,15 +2,14 @@ package routes
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"log/slog"
 	"net/http"
-	"spotify-widget-v2/services"
-
-	"github.com/gorilla/mux"
+	"spotify-widget-v2/handlers"
 )
 
-func GetRouter() http.Handler {
-	router, err := setupRouter()
+func GetRouter(h *handlers.Handler) http.Handler {
+	router, err := setupRouter(h)
 	if err != nil {
 		panic(fmt.Sprintf("Error setting up router %s", err.Error()))
 	}
@@ -24,7 +23,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func setupRouter() (*mux.Router, error) {
+func setupRouter(h *handlers.Handler) (*mux.Router, error) {
 	r := mux.NewRouter()
 	r.Use(mux.CORSMethodMiddleware(r))
 
@@ -36,9 +35,9 @@ func setupRouter() (*mux.Router, error) {
 			return
 		}
 	}).Methods(http.MethodGet)
-	r.HandleFunc("/api/v1/callback", services.Callback).Methods(http.MethodGet, http.MethodPost)
-	r.HandleFunc("/api/v1/tracks", services.Tracks).Methods(http.MethodGet)
-	r.HandleFunc("/api/v1/playlists", services.Playlists).Methods(http.MethodGet)
+	r.HandleFunc("/api/v1/callback", h.Callback).Methods(http.MethodGet, http.MethodPost)
+	r.HandleFunc("/api/v1/tracks", h.PlaylistTracks).Methods(http.MethodGet)
+	r.HandleFunc("/api/v1/playlists", h.Playlists).Methods(http.MethodGet)
 
 	return r, nil
 }
