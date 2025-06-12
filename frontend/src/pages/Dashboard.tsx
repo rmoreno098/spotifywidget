@@ -1,17 +1,12 @@
 // src/pages/Dashboard.tsx
-import { useNavigate } from "react-router-dom";
-
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../context/AuthUtils";
 import { dashboardItems } from "../assets/DashboardItems";
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
 
-  // Get authenticated user
-  const { user } = useAuth();
-  if (!user) {
-    navigate("/");
-    return null;
+  if (!isAuthenticated || !user) {
+    return <div>Loading...</div>;
   }
 
   const handleItemClick = (itemId: string) => {
@@ -47,9 +42,6 @@ export default function DashboardPage() {
                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${item.gradient} group-hover:${item.hoverGradient} transition-all duration-300`}
                 />
-
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all duration-300" />
 
                 {/* Content */}
                 <div className="relative p-8 md:p-10 lg:p-12 h-48 md:h-56 lg:h-64 flex flex-col justify-between">

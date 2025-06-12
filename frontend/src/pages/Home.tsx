@@ -1,20 +1,17 @@
 // src/pages/Home.tsx
-import { useNavigate } from "react-router-dom";
-
+import { useAuth } from "../context/AuthUtils";
 import loginImage from "../assets/Home.jpeg";
-import { useAuth } from "../hooks/useAuth";
 import { redirectToAuthCodeFlow } from "../api/auth";
 
 const { VITE_SPOTIFY_CLIENT_ID } = import.meta.env;
 
 export default function HomePage() {
   const clientId = VITE_SPOTIFY_CLIENT_ID;
-  const navigate = useNavigate();
 
   // Check if the user is already authenticated
-  const {isAuthenticated} = useAuth();
+  const { isAuthenticated } = useAuth();
   if (isAuthenticated) {
-    navigate("/dashboard");
+    window.location.href = "/dashboard";
     return null;
   }
 
@@ -24,7 +21,7 @@ export default function HomePage() {
     } catch (error) {
       console.error("Failed to redirect to Spotify auth flow:", error);
       alert(
-        "An error occurred while trying to connect to Spotify. Please try again."
+        "An error occurred while trying to connect to Spotify. Please try again.",
       );
     }
   }
