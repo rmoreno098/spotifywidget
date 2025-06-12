@@ -1,13 +1,11 @@
 // src/models/Auth.ts
-export type AuthUser = {
-  sub: string;
+export type User = {
+  id: string;
   name: string;
   email: string;
-  exp: number;
-  iat: number;
 };
 
 export type AuthState = {
   isAuthenticated: boolean;
-  user: AuthUser | null;
+  user: User | null;
 };
