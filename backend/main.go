@@ -15,9 +15,10 @@ func main() {
 
 	spotify := services.NewSpotifyService(cfg.SpotifyClientId, cfg.SpotifyClientSecret, cfg.SpotifyRedirectUri)
 	jwt := services.NewJwtService(cfg.JWTSecret)
+	redis := services.NewRedisService(cfg.RedisAddr, cfg.RedisPassword)
 
 	h := &handlers.Handler{
-		Spotify: spotify, JWT: jwt,
+		Spotify: spotify, JWT: jwt, Redis: redis,
 	}
 
 	router := routes.GetRouter(h)
