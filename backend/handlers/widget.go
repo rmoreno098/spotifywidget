@@ -6,10 +6,18 @@ import (
 	"log/slog"
 	"net/http"
 	"spotify-widget-v2/models"
+	"spotify-widget-v2/services"
 )
 
 func (h *Handler) PlaylistTracks(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("X-Spotify-Token")
+	claims := r.Context().Value(models.AuthContext{Claims: "claims"}).(*services.JwtClaims)
+
+	session, err := h.Redis.GetSession(claims.ID)
+	if err != nil {
+		slog.Error("Error getting session", "error", err)
+		http.Error(w, "Error getting session", http.StatusUnauthorized)
+	}
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		slog.Error("Error reading body", "error", err)
@@ -24,7 +32,7 @@ func (h *Handler) PlaylistTracks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tracks, err := h.Spotify.GetPlaylistTracks(token, p.ID)
+	tracks, err := h.Spotify.GetPlaylistTracks(session.AccessToken, p.ID)
 	if err != nil {
 		slog.Error("Error getting tracks", "error", err)
 		http.Error(w, "Error fetching tracks from Spotify", http.StatusInternalServerError)
@@ -36,9 +44,15 @@ func (h *Handler) PlaylistTracks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Playlists(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("X-Spotify-Token")
+	claims := r.Context().Value(models.AuthContext{Claims: "claims"}).(*services.JwtClaims)
 
-	playlists, err := h.Spotify.GetPlaylists(token)
+	session, err := h.Redis.GetSession(claims.Sub)
+	if err != nil {
+		slog.Error("Error getting session", "error", err)
+		http.Error(w, "Error getting session", http.StatusUnauthorized)
+	}
+
+	playlists, err := h.Spotify.GetPlaylists(session.AccessToken)
 	if err != nil {
 		slog.Error("Error getting playlists", "error", err)
 		http.Error(w, "Error fetching playlists from Spotify", http.StatusInternalServerError)

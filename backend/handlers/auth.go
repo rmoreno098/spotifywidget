@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"spotify-widget-v2/models"
+	"spotify-widget-v2/services"
 )
 
 func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
@@ -30,6 +32,10 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := h.Redis.CreateSession(token, user.ID); err != nil {
+		slog.Error("Error creating session for user", "error", err, "user", user.ID)
+	}
+
 	jwt, err := h.JWT.GenerateToken(user)
 	if err != nil {
 		slog.Error("Error generating token", "error", err)
@@ -49,23 +55,7 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-
-	cookie, err := r.Cookie("auth_token")
-	if err != nil {
-		slog.Error("Cookie not found", "error", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	tokenStr := cookie.Value
-	claims, err := h.JWT.ParseToken(tokenStr)
-	if err != nil {
-		slog.Error("Error parsing token", "error", err, "token", tokenStr)
-		http.Error(w, "Error parsing token", http.StatusUnauthorized)
-		return
-	}
+	claims := r.Context().Value(models.AuthContext{Claims: "claims"}).(*services.JwtClaims)
 
 	user := map[string]string{
 		"id":    claims.Sub,
