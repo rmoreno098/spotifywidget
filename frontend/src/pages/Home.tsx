@@ -1,21 +1,19 @@
 // src/pages/Home.tsx
-import { useAuth } from "../context/AuthUtils";
 import loginImage from "../assets/Home.jpeg";
-import { redirectToAuthCodeFlow } from "../api/auth";
+import { redirectToAuthCodeFlow } from "../api/SpotifyAuth";
+import { useAuth } from "../context/AuthUtils";
 
 const { VITE_SPOTIFY_CLIENT_ID } = import.meta.env;
+const clientId = VITE_SPOTIFY_CLIENT_ID;
 
 export default function HomePage() {
-  const clientId = VITE_SPOTIFY_CLIENT_ID;
-
-  // Check if the user is already authenticated
   const { isAuthenticated } = useAuth();
   if (isAuthenticated) {
     window.location.href = "/dashboard";
     return null;
   }
 
-  async function spotifyConnect() {
+  const spotifyConnect = async () => {
     try {
       await redirectToAuthCodeFlow(clientId);
     } catch (error) {
@@ -24,14 +22,14 @@ export default function HomePage() {
         "An error occurred while trying to connect to Spotify. Please try again.",
       );
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex">
       {/* Image Section */}
       <div className="hidden md:flex md:w-3/5 lg:w-1/2">
         <img
-          loading="lazy"
+          loading="eager"
           src={loginImage}
           alt="Spotify Welcome Page"
           className="w-full h-full object-cover"

@@ -1,10 +1,13 @@
-export async function getPlaylists(userId: string) {
-  const result = await fetch("http://localhost:8080/getPlaylists", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId }),
-  });
+export const getPlaylists = async () => {
+  try {
+    const result = await fetch("http://localhost:8080/api/v1/playlists", {
+      credentials: "include",
+    });
 
-  const playlists = await result.json();
-  return playlists;
-}
+    const playlists = await result.json();
+    return playlists;
+  } catch (error) {
+    console.log("An error occurred fetching playlists:", error);
+    return error;
+  }
+};

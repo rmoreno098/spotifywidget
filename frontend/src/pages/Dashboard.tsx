@@ -1,16 +1,13 @@
 // src/pages/Dashboard.tsx
-import { useAuth } from "../context/AuthUtils";
 import { dashboardItems } from "../assets/DashboardItems";
+import { useAuth } from "../context/AuthUtils";
 
 export default function DashboardPage() {
-  const { isAuthenticated, user } = useAuth();
-
-  if (!isAuthenticated || !user) {
-    return <div>Loading...</div>;
-  }
+  const { user } = useAuth();
 
   const handleItemClick = (itemId: string) => {
-    console.log(`Navigating to ${itemId}`);
+    window.location.href = itemId;
+    return null;
   };
 
   return (
@@ -19,7 +16,7 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto mb-8 md:mb-12">
         <div className="text-center md:text-left">
           <h1 className="text-3xl md:text-5xl font-bold mb-2">
-            Hello, {user.name}
+            Hello, {user!.name}
           </h1>
           <p className="text-gray-300 text-lg md:text-xl">
             What would you like to explore today?

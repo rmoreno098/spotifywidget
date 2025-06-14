@@ -8,4 +8,5 @@ export type User = {
 export type AuthState = {
   isAuthenticated: boolean;
   user: User | null;
+  loading: boolean;
 };
