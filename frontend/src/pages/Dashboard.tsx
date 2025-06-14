@@ -1,21 +1,13 @@
 // src/pages/Dashboard.tsx
-import { useNavigate } from "react-router-dom";
-
-import { useAuth } from "../hooks/useAuth";
 import { dashboardItems } from "../assets/DashboardItems";
+import { useAuth } from "../context/AuthUtils";
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
-
-  // Get authenticated user
   const { user } = useAuth();
-  if (!user) {
-    navigate("/");
-    return null;
-  }
 
   const handleItemClick = (itemId: string) => {
-    console.log(`Navigating to ${itemId}`);
+    window.location.href = itemId;
+    return null;
   };
 
   return (
@@ -24,7 +16,7 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto mb-8 md:mb-12">
         <div className="text-center md:text-left">
           <h1 className="text-3xl md:text-5xl font-bold mb-2">
-            Hello, {user.name}
+            Hello, {user!.name}
           </h1>
           <p className="text-gray-300 text-lg md:text-xl">
             What would you like to explore today?
@@ -47,9 +39,6 @@ export default function DashboardPage() {
                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${item.gradient} group-hover:${item.hoverGradient} transition-all duration-300`}
                 />
-
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all duration-300" />
 
                 {/* Content */}
                 <div className="relative p-8 md:p-10 lg:p-12 h-48 md:h-56 lg:h-64 flex flex-col justify-between">

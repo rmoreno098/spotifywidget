@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/rs/cors"
 	"io"
 	"log"
 	"net/http"
@@ -10,14 +11,14 @@ import (
 	"spotify-widget/server/database"
 	"spotify-widget/server/types"
 	"strings"
-	"github.com/rs/cors"
 )
+
 var verifier string
 
 func refreshToken(token string, id string) string {
 	URL := "https://accounts.spotify.com/api/token"
 	req, err := http.NewRequest(http.MethodPost, URL, nil)
-	if err != nil{
+	if err != nil {
 		log.Println("Refresh token err: ", err)
 		return ""
 	}
@@ -33,14 +34,14 @@ func fetchProfile(token string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	req.Header.Set("Authorization", "Bearer " + token)
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(resp)
 		return "", "", err
-	} else if resp.StatusCode == 401{
+	} else if resp.StatusCode == 401 {
 		// Refresh token
 
 	}
@@ -65,8 +66,8 @@ func verifierHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var x types.VerResp // create a variable of type verResp
-    err = json.Unmarshal(body, &x)	// store body into x
+	var x types.VerResp            // create a variable of type verResp
+	err = json.Unmarshal(body, &x) // store body into x
 	if err != nil {
 		log.Println(err)
 		return
@@ -78,7 +79,7 @@ func verifierHandler(w http.ResponseWriter, r *http.Request) {
 
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	// retrieve the code found in the parameters of the callback URL
-	code := r.URL.Query().Get("code")	
+	code := r.URL.Query().Get("code")
 	if code == "" {
 		log.Println("No code found")
 		http.Error(w, "No Authorization Code", 1)
@@ -97,7 +98,7 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	// fetch the user's id and display name
 	id, name, err := fetchProfile(access_token)
-	if err != nil{
+	if err != nil {
 		log.Println("Error fetching profile:", err)
 	}
 
@@ -117,15 +118,14 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
-
 func emptyHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("website accessed with no handler")
-	return;
+	return
 }
 
 func getAccessToken(code string, verifier string) (string, string) {
-	params := url.Values {
+	params := url.Values{
 		"client_id":     {"98fc1b94f1e445cebcfe067a505598ba"},
 		"grant_type":    {"authorization_code"},
 		"code":          {code},
@@ -134,20 +134,20 @@ func getAccessToken(code string, verifier string) (string, string) {
 	}
 	payload := strings.NewReader(params.Encode())
 
-	resp, err := http.Post("https://accounts.spotify.com/api/token", 
-						   "application/x-www-form-urlencoded",
-						   payload)
+	resp, err := http.Post("https://accounts.spotify.com/api/token",
+		"application/x-www-form-urlencoded",
+		payload)
 	if err != nil {
 		log.Println(err)
 		return "error", "error"
-	} 
-		defer resp.Body.Close()
+	}
+	defer resp.Body.Close()
 
 	// Read the response body
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		return "error","error"
+		return "error", "error"
 	}
 	// Print or store the access token (response handling)
 	var x types.TokenResp
@@ -160,18 +160,18 @@ func getAccessToken(code string, verifier string) (string, string) {
 	return x.AccessToken, x.RefreshToken
 }
 
-func fetchTopItems(token string) *types.AnalyzerResponse{
+func fetchTopItems(token string) *types.AnalyzerResponse {
 	var artists types.TopArtists // Struct of both top artists and tracks
 	var tracks types.TopTracks
 	log.Println("Token:", token)
 	URL := fmt.Sprintf("https://api.spotify.com/v1/me/top/%s?offset=0", "artists")
 	log.Println("Sprintf:", URL)
 	req, err := http.NewRequest(http.MethodGet, URL, nil) // Build request
-	if err != nil{
+	if err != nil {
 		log.Println("FetchItems err: ", err)
 		return nil
 	}
-	req.Header.Set("Authorization", "Bearer " + token)
+	req.Header.Set("Authorization", "Bearer "+token)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil && resp.Status != "200 OK" {
@@ -179,7 +179,7 @@ func fetchTopItems(token string) *types.AnalyzerResponse{
 	}
 	JSON, err := io.ReadAll(resp.Body) // Reading in JSON and parsing
 	err = json.Unmarshal(JSON, &artists)
-	if err != nil{
+	if err != nil {
 		log.Println("fetchTopItems: err decoding artists - ", err)
 		return nil
 	}
@@ -187,32 +187,32 @@ func fetchTopItems(token string) *types.AnalyzerResponse{
 	URL = fmt.Sprintf("https://api.spotify.com/v1/me/top/%s?offset=0", "tracks") // Now fetch the tracks
 	log.Println("Sprintf:", URL)
 	req, err = http.NewRequest(http.MethodGet, URL, nil)
-	req.Header.Set("Authorization", "Bearer " + token)
-	log.Println("Tracks URL:", req)
-	if err != nil{
+	req.Header.Set("Authorization", "Bearer "+token)
+	log.Println("PlaylistTracks URL:", req)
+	if err != nil {
 		log.Println("fetchTopItems:", err)
 		return nil
 	}
 	resp, err = client.Do(req)
-	if err != nil{
+	if err != nil {
 		log.Println("fetchTopItems req err:", err)
 		return nil
 	}
 	JSON, err = io.ReadAll(resp.Body)
-	log.Println("Tracks response status:", resp.Status)
+	log.Println("PlaylistTracks response status:", resp.Status)
 	err = json.Unmarshal(JSON, &tracks)
-	if err != nil{
+	if err != nil {
 		log.Println("fetchTopItems: err decoding tracks -", err)
 		return nil
 	}
-	result := types.PackAnalyzer(tracks, artists) 
+	result := types.PackAnalyzer(tracks, artists)
 	return &result
 }
 
-func analyzerHandler(w http.ResponseWriter, r *http.Request){
+func analyzerHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	log.Println("Incoming request body", body)
-	if err != nil{
+	if err != nil {
 		log.Println("analyzerHandler - body", err)
 		return
 	}
@@ -221,14 +221,14 @@ func analyzerHandler(w http.ResponseWriter, r *http.Request){
 	id := x.UserId
 	log.Println("analyzerHandler id:", id)
 	token, _, err := database.GetUserToken(id)
-	if err != nil{
+	if err != nil {
 		log.Println("Analyzer - fetching token from DB:", err)
 		http.Error(w, "Error retreiving user token from DB", http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
 	response := fetchTopItems(token)
-	if response == nil{
+	if response == nil {
 		log.Println("Analyzer: did not fetch top items -", err)
 	}
 	result, err := json.Marshal(response)
@@ -238,13 +238,13 @@ func analyzerHandler(w http.ResponseWriter, r *http.Request){
 
 func playlistsHandler(w http.ResponseWriter, r *http.Request) {
 	// retrieve the user's id from the request
-	body, err := io.ReadAll(r.Body)	// read the body of the request
+	body, err := io.ReadAll(r.Body) // read the body of the request
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	var x types.PlaylistResp	// create a variable of type PlaylistResp
-    err = json.Unmarshal(body, &x)	// store body into x
+	var x types.PlaylistResp       // create a variable of type PlaylistResp
+	err = json.Unmarshal(body, &x) // store body into x
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -271,25 +271,25 @@ func playlistsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// read the response body
 	rawJSON, err := io.ReadAll(resp.Body)
-    if err != nil {
-        http.Error(w, "Error reading Spotify response", http.StatusInternalServerError)
-        return
-    }
+	if err != nil {
+		http.Error(w, "Error reading Spotify response", http.StatusInternalServerError)
+		return
+	}
 
 	// write the response body to the client
 	w.Header().Set("Content-Type", "application/json")
-    w.Write(rawJSON)
+	w.Write(rawJSON)
 }
 
 func tracksHandler(w http.ResponseWriter, r *http.Request) {
 	// retrieve the playlist id from the request
-	body, err := io.ReadAll(r.Body)	// read the body of the request
+	body, err := io.ReadAll(r.Body) // read the body of the request
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	var x types.TrackResp	// create a variable of type PlaylistResp
-    err = json.Unmarshal(body, &x)	// store body into x
+	var x types.TrackResp          // create a variable of type PlaylistResp
+	err = json.Unmarshal(body, &x) // store body into x
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -332,7 +332,7 @@ func fetchTracks(token string, id string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer " + token)
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -349,7 +349,7 @@ func fetchPlaylists(token string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer " + token)
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -373,12 +373,12 @@ func main() {
 	log.Println("Server is now runnning on port 8080!")
 
 	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
-        corsHandler.Handler(http.HandlerFunc(callbackHandler)).ServeHTTP(w, r)
-    })
+		corsHandler.Handler(http.HandlerFunc(callbackHandler)).ServeHTTP(w, r)
+	})
 
 	http.HandleFunc("/verifier", func(w http.ResponseWriter, r *http.Request) {
-        corsHandler.Handler(http.HandlerFunc(verifierHandler)).ServeHTTP(w, r)
-    })
+		corsHandler.Handler(http.HandlerFunc(verifierHandler)).ServeHTTP(w, r)
+	})
 
 	http.HandleFunc("/getPlaylists", func(w http.ResponseWriter, r *http.Request) {
 		corsHandler.Handler(http.HandlerFunc(playlistsHandler)).ServeHTTP(w, r)

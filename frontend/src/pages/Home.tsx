@@ -1,40 +1,35 @@
 // src/pages/Home.tsx
-import { useNavigate } from "react-router-dom";
-
 import loginImage from "../assets/Home.jpeg";
-import { useAuth } from "../hooks/useAuth";
-import { redirectToAuthCodeFlow } from "../api/auth";
+import { redirectToAuthCodeFlow } from "../api/SpotifyAuth";
+import { useAuth } from "../context/AuthUtils";
 
 const { VITE_SPOTIFY_CLIENT_ID } = import.meta.env;
+const clientId = VITE_SPOTIFY_CLIENT_ID;
 
 export default function HomePage() {
-  const clientId = VITE_SPOTIFY_CLIENT_ID;
-  const navigate = useNavigate();
-
-  // Check if the user is already authenticated
-  const {isAuthenticated} = useAuth();
+  const { isAuthenticated } = useAuth();
   if (isAuthenticated) {
-    navigate("/dashboard");
+    window.location.href = "/dashboard";
     return null;
   }
 
-  async function spotifyConnect() {
+  const spotifyConnect = async () => {
     try {
       await redirectToAuthCodeFlow(clientId);
     } catch (error) {
       console.error("Failed to redirect to Spotify auth flow:", error);
       alert(
-        "An error occurred while trying to connect to Spotify. Please try again."
+        "An error occurred while trying to connect to Spotify. Please try again.",
       );
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex">
       {/* Image Section */}
       <div className="hidden md:flex md:w-3/5 lg:w-1/2">
         <img
-          loading="lazy"
+          loading="eager"
           src={loginImage}
           alt="Spotify Welcome Page"
           className="w-full h-full object-cover"
