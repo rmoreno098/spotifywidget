@@ -1,7 +1,7 @@
 // src/context/AuthContext.tsx
 import React, { useEffect, useState } from "react";
-import type { User, AuthState } from "../models/Auth";
 import { AuthContext } from "./AuthUtils";
+import type { User, AuthState } from "../models/Auth";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -9,6 +9,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     user: null,
+    loading: true,
   });
 
   useEffect(() => {
@@ -19,14 +20,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         });
         if (res.ok) {
           const data: User = await res.json();
-          if (data) {
-            setAuthState({ isAuthenticated: true, user: data });
-          }
+          setAuthState({ isAuthenticated: true, user: data, loading: false });
+        } else {
+          setAuthState({ isAuthenticated: false, user: null, loading: false });
         }
       } catch (err) {
         console.error("Failed to fetch user info:", err);
-        window.location.href = "/";
-        setAuthState({ isAuthenticated: false, user: null });
+        setAuthState({ isAuthenticated: false, user: null, loading: false });
       }
     };
 

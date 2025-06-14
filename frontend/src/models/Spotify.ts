@@ -16,6 +16,20 @@ export interface UserProfile {
   uri: string;
 }
 
+export interface Playlist {
+  id: string;
+  name: string;
+  description?: string;
+  images?: Array<{ url: string; height: number; width: number }>;
+  tracks?: {
+    total: number;
+  };
+  owner?: {
+    display_name: string;
+  };
+  public?: boolean;
+}
+
 export interface Image {
   url: string;
   height: number;
@@ -40,7 +54,7 @@ export interface Item {
   id: string;
   images: Image[];
   name: string;
-  owner: Owner; // do later
+  // owner: Owner; // do later
   primary_color: string;
   public: boolean;
   snapshot_id: string;
@@ -56,7 +70,7 @@ export interface Track {
   disc_number: number;
   duration_ms: number;
   explicit: boolean;
-  external_ids: Externalids;
+  // external_ids: Externalids;
   external_urls: { spotify: string };
   href: string;
   id: string;
