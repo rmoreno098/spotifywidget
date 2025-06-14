@@ -46,7 +46,15 @@ func authMiddleware(h *handlers.Handler) func(handler http.Handler) http.Handler
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), models.AuthContext{Claims: "claims"}, claims)
+			session, err := h.Redis.GetSession(claims.Sub)
+			if err != nil {
+				slog.Error("Unable to find active session", "error", err)
+				http.Error(w, "Unable to find active session", http.StatusUnauthorized)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), models.AuthContext{Session: "session"}, session)
+			ctx = context.WithValue(ctx, models.AuthContext{Claims: "claims"}, claims)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
