@@ -6,18 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 	"spotify-widget-v2/models"
-	"spotify-widget-v2/services"
 )
 
 func (h *Handler) PlaylistTracks(w http.ResponseWriter, r *http.Request) {
-	claims := r.Context().Value(models.AuthContext{Claims: "claims"}).(*services.JwtClaims)
-
-	session, err := h.Redis.GetSession(claims.ID)
-	if err != nil {
-		slog.Error("Error getting session", "error", err)
-		http.Error(w, "Error getting session", http.StatusUnauthorized)
-	}
-
+	session := r.Context().Value(models.AuthContext{Session: "session"}).(*models.Token)
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		slog.Error("Error reading body", "error", err)
@@ -44,13 +36,7 @@ func (h *Handler) PlaylistTracks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Playlists(w http.ResponseWriter, r *http.Request) {
-	claims := r.Context().Value(models.AuthContext{Claims: "claims"}).(*services.JwtClaims)
-
-	session, err := h.Redis.GetSession(claims.Sub)
-	if err != nil {
-		slog.Error("Error getting session", "error", err)
-		http.Error(w, "Error getting session", http.StatusUnauthorized)
-	}
+	session := r.Context().Value(models.AuthContext{Session: "session"}).(*models.Token)
 
 	playlists, err := h.Spotify.GetPlaylists(session.AccessToken)
 	if err != nil {
