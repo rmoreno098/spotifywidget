@@ -1,9 +1,19 @@
 // src/pages/Dashboard.tsx
 import { dashboardItems } from "../assets/DashboardItems";
-import { useAuth } from "../context/AuthUtils";
+import { LoadingComponent } from "../components/Common";
+import { useSessionGuard } from "../hooks/useSessionGuard";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { isLoading, isAuthenticated, user, error } = useSessionGuard();
+
+  if (isLoading) {
+    <LoadingComponent />;
+  }
+
+  if (!isAuthenticated) {
+    window.location.href = "/";
+    return null;
+  }
 
   const handleItemClick = (itemId: string) => {
     window.location.href = itemId;
@@ -12,11 +22,14 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-4 md:p-8">
+      {/* Error State */}
+      {error && <div className="error">{error}</div>}
+
       {/* Header Section */}
       <div className="max-w-7xl mx-auto mb-8 md:mb-12">
         <div className="text-center md:text-left">
           <h1 className="text-3xl md:text-5xl font-bold mb-2">
-            Hello, {user!.name}
+            Hello, {user?.name}
           </h1>
           <p className="text-gray-300 text-lg md:text-xl">
             What would you like to explore today?

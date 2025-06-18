@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/Home";
 import DashboardPage from "./pages/Dashboard";
 import PlaylistPage from "./pages/Playlist";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export default function App() {
   return (
