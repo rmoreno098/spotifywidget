@@ -22,7 +22,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-4 md:p-8">
-      {/* Loading State */}
+      {/* Error State */}
       {error && <div className="error">{error}</div>}
 
       {/* Header Section */}
