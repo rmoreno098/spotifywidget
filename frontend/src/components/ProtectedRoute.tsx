@@ -1,23 +1,25 @@
+// components/ProtectedRoute.tsx
 import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthUtils";
+import type { ReactNode } from "react";
+import { useSession } from "../context/SessionUtils";
 import { LoadingComponent } from "./Common";
+import HomePage from "../pages/Home";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, user, loading } = useAuth();
-  const location = useLocation();
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { sessionState } = useSession();
 
-  if (loading) {
-    <LoadingComponent />;
+  if (sessionState.isLoading) {
+    return <LoadingComponent />;
   }
 
-  if (!isAuthenticated || !user) {
-    return <Navigate to="/" replace state={{ from: location }} />;
+  if (!sessionState.isAuthenticated) {
+    return <HomePage />;
   }
 
   return <>{children}</>;
-}
+};

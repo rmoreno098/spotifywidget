@@ -1,14 +1,15 @@
 // src/pages/Home.tsx
 import loginImage from "../assets/Home.jpeg";
 import { redirectToAuthCodeFlow } from "../api/SpotifyAuth";
-import { useAuth } from "../context/AuthUtils";
+import { useSession } from "../context/SessionUtils";
 
 const { VITE_SPOTIFY_CLIENT_ID } = import.meta.env;
 const clientId = VITE_SPOTIFY_CLIENT_ID;
 
 export default function HomePage() {
-  const { isAuthenticated } = useAuth();
-  if (isAuthenticated) {
+  const { sessionState } = useSession();
+
+  if (sessionState.isAuthenticated) {
     window.location.href = "/dashboard";
     return null;
   }
@@ -19,7 +20,7 @@ export default function HomePage() {
     } catch (error) {
       console.error("Failed to redirect to Spotify auth flow:", error);
       alert(
-        "An error occurred while trying to connect to Spotify. Please try again.",
+        "An error occurred while trying to connect to Spotify. Please try again."
       );
     }
   };

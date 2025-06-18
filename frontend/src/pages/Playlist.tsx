@@ -2,9 +2,9 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Play, Music, MoreHorizontal } from "lucide-react";
 import { getPlaylists } from "../api/Playlists";
-import type { Playlist } from "../models/Spotify";
-import { useAuth } from "../context/AuthUtils.ts";
+import type { Playlist } from "../types/Spotify";
 import { ErrorComponent, LoadingComponent } from "../components/Common.tsx";
+import { useSessionGuard } from "../hooks/useSessionGuard.ts";
 
 interface PlaylistsResponse {
   items: Playlist[];
@@ -16,7 +16,7 @@ export default function PlaylistPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useSessionGuard();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,8 +24,8 @@ export default function PlaylistPage() {
         setLoading(true);
         const playlists = await getPlaylists();
         setData(playlists);
-      } catch (error: any) {
-        setError(error?.message || "An unknown error occurred");
+      } catch (error: unknown) {
+        setError((error as Error)?.message || "An unknown error occurred");
       } finally {
         setLoading(false);
       }
@@ -33,7 +33,7 @@ export default function PlaylistPage() {
 
     if (!isAuthenticated) {
       window.location.href = "/";
-      return null;
+      return;
     }
 
     fetchData();
@@ -50,7 +50,7 @@ export default function PlaylistPage() {
   };
 
   if (loading) {
-    return LoadingComponent();
+    return <LoadingComponent />;
   }
 
   if (error) {
