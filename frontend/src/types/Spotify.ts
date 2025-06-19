@@ -1,80 +1,30 @@
-export interface UserProfile {
-  country: string;
-  display_name: string;
-  email: string;
-  explicit_content: {
-    filter_enabled: boolean;
-    filter_locked: boolean;
-  };
-  external_urls: { spotify: string };
-  followers: { href: string; total: number };
+export interface PlaylistTracks {
   href: string;
-  id: string;
-  images: Image[];
-  product: string;
-  type: string;
-  uri: string;
-}
-
-export interface Playlist {
-  id: string;
-  name: string;
-  description?: string;
-  images?: Array<{ url: string; height: number; width: number }>;
-  tracks?: {
-    total: number;
-  };
-  owner?: {
-    display_name: string;
-  };
-  public?: boolean;
-}
-
-export interface Image {
-  url: string;
-  height: number;
-  width: number;
-}
-
-export interface Playlist {
-  href: string;
-  items: Item[];
   limit: number;
   next: string;
   offset: number;
   previous: string;
   total: number;
+  items: PlaylistTrack[];
 }
 
-export interface Item {
-  collaborative: boolean;
-  description: string;
-  external_urls: { spotify: string };
-  href: string;
-  id: string;
-  images: Image[];
-  name: string;
-  // owner: Owner; // do later
-  primary_color: string;
-  public: boolean;
-  snapshot_id: string;
-  type: string;
-  uri: string;
+export interface PlaylistTrack {
+  added_at: string;
+  // added_by: {
+  //   id: string;
+  //   name: string;
+  // };
+  is_local: boolean;
   track: Track;
 }
 
 export interface Track {
   album: Album;
-  artists: Artist[];
-  available_markets: string[];
-  disc_number: number;
+  artists: SimplifiedArtist[];
   duration_ms: number;
   explicit: boolean;
-  // external_ids: Externalids;
-  external_urls: { spotify: string };
   href: string;
   id: string;
-  is_local: boolean;
   name: string;
   popularity: number;
   preview_url: string;
@@ -83,17 +33,55 @@ export interface Track {
   uri: string;
 }
 
-export interface Album {
-  images: Image[];
-  name: string;
+export interface Image {
+  url: string;
+  height: number;
+  width: number;
 }
 
-// not used yet
-export interface Artist {
-  genres: string[];
+// export interface Playlists {
+//   href: string;
+//   limit: number;
+//   next: string;
+//   offset: number;
+//   previous: string;
+//   total: number;
+//   items: PlaylistItem[];
+// }
+
+export interface PlaylistItem {
+  collaborative: boolean;
+  description: string;
+  href: string;
+  id: string;
+  images: Image[];
+  name: string;
+  public: boolean;
+  snapshot_id: string;
+  // tracks: {
+  //   href: string;
+  //   total: number;
+  // };
+  type: string;
+  uri: string;
+}
+
+export interface Album {
+  album_type: string;
+  total_tracks: number;
+  href: string;
+  id: string;
+  images: Image[];
+  name: string;
+  type: string;
+  uri: string;
+  artists: SimplifiedArtist[];
+}
+
+export interface SimplifiedArtist {
   href: string;
   id: string;
   name: string;
-  popularity: number;
+  type: string;
   uri: string;
 }

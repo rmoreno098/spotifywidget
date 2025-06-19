@@ -3,11 +3,12 @@ package routes
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/mux"
 	"log/slog"
 	"net/http"
 	"spotify-widget-v2/handlers"
 	"spotify-widget-v2/models"
+
+	"github.com/gorilla/mux"
 )
 
 func GetRouter(h *handlers.Handler) http.Handler {
@@ -72,7 +73,7 @@ func setupRouter(h *handlers.Handler) (*mux.Router, error) {
 	protected := api.PathPrefix("/").Subrouter()
 	protected.Use(authMiddleware(h))
 	protected.HandleFunc("/me", h.Me).Methods(http.MethodGet)
-	protected.HandleFunc("/tracks", h.PlaylistTracks).Methods(http.MethodGet)
+	protected.HandleFunc("/playlistracks/{id}", h.PlaylistTracks).Methods(http.MethodGet)
 	protected.HandleFunc("/playlists", h.Playlists).Methods(http.MethodGet)
 
 	return r, nil
