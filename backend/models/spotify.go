@@ -9,6 +9,7 @@ type Track struct {
 	ID          string             `json:"id"`
 	Name        string             `json:"name"`
 	Popularity  int                `json:"popularity"`
+	PreviewURL  string             `json:"preview_url"`
 	TrackNumber int                `json:"track_number"`
 	Type        string             `json:"type"`
 	Uri         string             `json:"uri"`
@@ -63,6 +64,7 @@ type PlaylistItem struct {
 	Public        bool    `json:"public"`
 	SnapshotID    string  `json:"snapshot_id"`
 	//PlaylistTracks        []Track `json:"tracks"`	// Review
+	// TODO: FIX THIS
 	Type string `json:"type"`
 	URI  string `json:"uri"`
 }
