@@ -39,16 +39,6 @@ export interface Image {
   width: number;
 }
 
-// export interface Playlists {
-//   href: string;
-//   limit: number;
-//   next: string;
-//   offset: number;
-//   previous: string;
-//   total: number;
-//   items: PlaylistItem[];
-// }
-
 export interface PlaylistItem {
   collaborative: boolean;
   description: string;
