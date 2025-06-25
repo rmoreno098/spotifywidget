@@ -2,14 +2,10 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Play, Music, MoreHorizontal } from "lucide-react";
 import { getPlaylists } from "../api/Playlists";
-import type { Playlist } from "../types/Spotify";
+import type { PlaylistsResponse } from "../api/Playlists";
 import { ErrorComponent, LoadingComponent } from "../components/Common.tsx";
 import { useSessionGuard } from "../hooks/useSessionGuard.ts";
-
-interface PlaylistsResponse {
-  items: Playlist[];
-  total: number;
-}
+import { Link } from "react-router-dom";
 
 export default function PlaylistPage() {
   const [data, setData] = useState<PlaylistsResponse | null>(null);
@@ -40,12 +36,7 @@ export default function PlaylistPage() {
   }, []);
 
   const handlePlaylistClick = (playlistId: string) => {
-    // Display tracks?
-    console.log("Click here:", playlistId);
-  };
-
-  const handleBackClick = () => {
-    window.location.href = "/dashboard";
+    window.location.href = `/playlistracks/${playlistId}`;
     return null;
   };
 
@@ -63,12 +54,12 @@ export default function PlaylistPage() {
       <div className="sticky top-0 z-10 bg-gray-900 bg-opacity-90 backdrop-blur-sm border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           <div className="flex items-center space-x-4">
-            <button
-              onClick={handleBackClick}
+            <Link
+              to="/dashboard"
               className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors duration-200"
             >
               <ArrowLeft size={20} />
-            </button>
+            </Link>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">Your Playlists</h1>
               <p className="text-gray-400 text-sm md:text-base">
@@ -128,13 +119,6 @@ export default function PlaylistPage() {
                       {playlist.description}
                     </p>
                   )}
-
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{playlist.tracks?.total || 0} tracks</span>
-                    {playlist.owner && (
-                      <span>by {playlist.owner.display_name}</span>
-                    )}
-                  </div>
                 </div>
 
                 {/* Action Menu */}
