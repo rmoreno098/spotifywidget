@@ -4,6 +4,7 @@ import HomePage from "./pages/Home";
 import DashboardPage from "./pages/Dashboard";
 import PlaylistPage from "./pages/Playlist";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import PlaylistTracks from "./pages/PlaylistTracks";
 
 export default function App() {
   return (
@@ -23,6 +24,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <PlaylistPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/playlistracks/:playlistId"
+          element={
+            <ProtectedRoute>
+              <PlaylistTracks />
             </ProtectedRoute>
           }
         />

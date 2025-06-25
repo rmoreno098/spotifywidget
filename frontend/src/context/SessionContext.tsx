@@ -39,7 +39,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({
         });
       }
     } catch (error) {
-      console.log("Error validating session:", error);
+      console.error("Error validating session:", error);
       setSessionState({
         isAuthenticated: false,
         isLoading: false,
